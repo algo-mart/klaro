@@ -2,7 +2,7 @@ name: Lint
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -14,7 +14,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: "14"
       - name: Install dependencies
         run: npm install
 
@@ -25,3 +25,10 @@ jobs:
         # Run Prettier for checking formatting
       - name: Check formatting with Prettier
         run: npx prettier --check .
+
+      - name: Fixing Instructions
+        if: ${{ failure() }}
+        run: |
+          echo "To fix linting and formatting issues, run the following commands on your local machine:"
+          echo "  npx eslint . --ext .js,.jsx,.ts,.tsx --fix"
+          echo "  npx prettier --write ."

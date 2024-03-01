@@ -1,10 +1,9 @@
 ---
 name: Bug Report
 about: Create a report to help us improve
-title: '[BUG] '
+title: "[BUG] "
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 ### Description
@@ -13,11 +12,11 @@ assignees: ''
 
 ### Steps to Reproduce
 
-<!-- 
+<!--
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
-4. See error 
+4. See error
 -->
 
 ### Expected Behavior
@@ -39,7 +38,6 @@ assignees: ''
 ### Related Pull Request
 
 <!-- If this issue is related to an existing pull request, please mention the pull request number here -->
-
 
 ### Additional Context
 
