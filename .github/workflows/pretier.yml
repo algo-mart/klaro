@@ -1,0 +1,34 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Install dependencies
+        run: npm install
+
+        # Run ESLint for linting
+      - name: Lint with ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+
+        # Run Prettier for checking formatting
+      - name: Check formatting with Prettier
+        run: npx prettier --check .
+
+      - name: Fixing Instructions
+        if: ${{ failure() }}
+        run: |
+          echo "To fix linting and formatting issues, run the following commands on your local machine:"
+          echo "  npx eslint . --ext .js,.jsx,.ts,.tsx --fix"
+          echo "  npx prettier --write ."
