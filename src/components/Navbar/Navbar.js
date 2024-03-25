@@ -74,24 +74,14 @@ const Navbar = () => {
               </NavLink>
             </li>
           </ul>
-          <div
-            className="nav__close"
-            role="button"
-            id="nav-close"
-            onClick={toggleMenu}
-          >
+          <button className="nav__close" id="nav-close" onClick={toggleMenu}>
             <IoClose />
-          </div>
+          </button>
         </div>
 
-        <div
-          className="nav__toggle"
-          role="button"
-          id="nav-toggle"
-          onClick={toggleMenu}
-        >
+        <button className="nav__toggle" id="nav-toggle" onClick={toggleMenu}>
           <IoMenu />
-        </div>
+        </button>
       </nav>
     </header>
   );
