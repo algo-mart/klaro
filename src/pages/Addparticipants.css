@@ -1,0 +1,11 @@
+.Reactfragment {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.form1 {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
