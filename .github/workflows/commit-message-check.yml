@@ -1,6 +1,8 @@
 name: Commit Message Check
 
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   check-commit-message:
@@ -12,8 +14,8 @@ jobs:
       - name: Check Commit Message
         uses: gsactions/commit-message-checker@v1
         with:
-          pattern: "^(feat|chore|test|fix|perf|doc|refactor):"
-          error: 'Commit message does not start with "feat:", "chore:", "test:", "fix:", "perf:", "doc:", or "refactor"'
+          pattern: '^(feat|chore|test|fix|perf|doc|refactor):'
+          error: 'Commit message does not start with "feat:", "chore:", "test:", "fix:", "perf:", "doc:", or "refactor:"'
 
       - name: Check Commit Message Length
         run: |
