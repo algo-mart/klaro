@@ -128,7 +128,7 @@ export default function Addparticipants() {
                 type="checkbox"
                 placeholder="Intern"
                 name="category"
-                checked={values.category == "intern" ? true : false}
+                checked={values.category === "intern" ? true : false}
                 value={"intern"}
                 onChange={handleInputChange}
               />
@@ -139,7 +139,7 @@ export default function Addparticipants() {
                 class="form-field mr"
                 type="checkbox"
                 placeholder="Intern"
-                checked={values.category == "member"}
+                checked={values.category === "member"}
                 name="category"
                 value={"member"}
                 onChange={handleInputChange}
@@ -151,7 +151,7 @@ export default function Addparticipants() {
                 class="form-field mr"
                 type="checkbox"
                 placeholder="Intern"
-                checked={values.category == "Senior Staff"}
+                checked={values.category === "Senior Staff"}
                 name="category"
                 value={"Senior Staff"}
                 onChange={handleInputChange}
