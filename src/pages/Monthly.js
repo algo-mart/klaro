@@ -1,5 +1,4 @@
 import React from "react";
-import "./Monthly.css";
 
 function Monthly() {
   return (
