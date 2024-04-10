@@ -39,7 +39,7 @@ export default function Addparticipants() {
   console.log(values);
 
   return (
-    <div className="form-container">
+    <div className="form-container1">
       <form className="register-form" onSubmit={handleSubmit}>
         {submitted && valid && (
           <div className="success-message">

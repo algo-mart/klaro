@@ -1,0 +1,36 @@
+.form-container {
+  width: 500px;
+  background-color: white;
+  margin: auto;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  padding: 10px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 0.5rem;
+}
+
+input,
+select {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background: var(--first-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: black;
+}

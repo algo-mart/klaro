@@ -1,0 +1,39 @@
+.attendance-table-container {
+  width: 500px;
+  background-color: white;
+  margin: auto;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  padding: 10px;
+}
+
+.search-date-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.date-input {
+  margin-right: 10px;
+  padding-left: 10px;
+}
+
+.search-box {
+  flex-grow: 1;
+  margin-right: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.attendance-table {
+  width: 100%;
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 8px;
+  text-align: left;
+}
+
+.attendance-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
