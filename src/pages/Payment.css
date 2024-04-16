@@ -1,0 +1,38 @@
+.form-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 0.5rem;
+}
+
+.TextField {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+input,
+select {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background-color: hsl(28, 88%, 62%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: black;
+}
