@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./Payment.css";
+import { TextField } from "@mui/material";
+
 
 const Payment = () => {
   const [formData, setFormData] = useState({
@@ -7,6 +9,9 @@ const Payment = () => {
     category: "",
     amountPaid: "",
   });
+
+  const [meetingDate, setMeetingDate] = useState("");
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,17 +30,16 @@ const Payment = () => {
   return (
     <div className="form-container">
       <form onSubmit={handleSubmit}>
-        <label htmlFor="name">Name:</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
+        <label htmlFor="category">Select meeting Date:</label>
+        <TextField
+          type="date"
+          value={meetingDate}
+          onChange={(e) => setMeetingDate(e.target.value)}
+          variant="outlined"
+          className="date-input"
         />
 
-        <label htmlFor="category">Select Category:</label>
+        <label htmlFor="category">Select meeting type:</label>
         <select
           id="category"
           name="category"
@@ -43,10 +47,10 @@ const Payment = () => {
           onChange={handleChange}
           required
         >
-          <option value="">--Please choose category--</option>
-          <option value="category1">Intern</option>
-          <option value="category2">Member</option>
-          <option value="category3">Senior Staff</option>
+          <option value="">--Please choose meeting type--</option>
+          <option value="category1">Type 1</option>
+          <option value="category2">Type 2</option>
+          <option value="category3">Type 3</option>
         </select>
 
         <label htmlFor="amountPaid">Enter Amount Paid:</label>

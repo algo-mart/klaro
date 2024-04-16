@@ -12,6 +12,11 @@ label {
   margin-bottom: 0.5rem;
 }
 
+.TextField {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+
 input,
 select {
   margin-bottom: 1rem;
