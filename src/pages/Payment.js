@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import "./Payment.css";
 import { TextField } from "@mui/material";
 
+
 const Payment = () => {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     amountPaid: "",
   });
+
   const [meetingDate, setMeetingDate] = useState("");
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
