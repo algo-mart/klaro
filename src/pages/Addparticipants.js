@@ -1,17 +1,20 @@
 import "./Addparticipants.css";
 import React, { useState } from "react";
+import axios from 'axios';
 
 export default function Addparticipants() {
   const [values, setValues] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
+    phone: "",
+    address: "",
+    category: "",
   });
 
-  const handleInputChange = (event) => {
-    /* event.persist(); NO LONGER USED IN v.17*/
-    event.preventDefault();
+  const [submitted, setSubmitted] = useState(false);
+  const [valid, setValid] = useState(false);
 
+  const handleInputChange = (event) => {
     const { name, value } = event.target;
     setValues((values) => ({
       ...values,
@@ -19,78 +22,76 @@ export default function Addparticipants() {
     }));
   };
 
-  const [submitted, setSubmitted] = useState(false);
-  const [valid, setValid] = useState(false);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (
-      values.firstName &&
-      values.lastName &&
-      values.email &&
-      values.phone &&
-      values.category
-    ) {
+
+    if (values.name && values.email && values.phone && values.address && values.category) {
       setValid(true);
+      submitParticipant(); // Call the API when the form is valid
+    } else {
+      setValid(false);
     }
+
     setSubmitted(true);
   };
 
-  console.log(values);
+  const submitParticipant = () => {
+    const data = {
+      name: values.name,
+      category: values.category,
+      contact_info: {
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+      },
+    };
+
+    axios.post('{{baseurl}}/participants', data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        console.log("Response data:", response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error submitting the form:", error);
+      });
+  };
 
   return (
-    <div className="form-container">
+    <div className="form-container-1">
+      <h1>Add Participant</h1>
       <form className="register-form" onSubmit={handleSubmit}>
         {submitted && valid && (
           <div className="success-message">
-            <h3>
-              {" "}
-              Welcome {values.firstName} {values.lastName}{" "}
-            </h3>
+            <h3> Welcome {values.name} </h3>
             <div> Your registration was successful! </div>
           </div>
         )}
 
-        <div className="display-flex">
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field mr"
-                type="text"
-                placeholder="First Name"
-                name="firstName"
-                value={values.firstName}
-                onChange={handleInputChange}
-              />
-            )}
+        <div className="display-flex-col">
+          {!valid && (
+            <input
+              className="form-field"
+              type="text"
+              placeholder="Full name"
+              name="name"
+              value={values.name}
+              onChange={handleInputChange}
+            />
+          )}
 
-            {submitted && !values.firstName && (
-              <span id="first-name-error">Please enter a first name</span>
-            )}
-          </div>
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field"
-                type="text"
-                placeholder="Last Name"
-                name="lastName"
-                value={values.lastName}
-                onChange={handleInputChange}
-              />
-            )}
-
-            {submitted && !values.lastName && (
-              <span id="last-name-error">Please enter a last name</span>
-            )}
-          </div>
+          {submitted && !values.name && (
+            <span id="name-error">Please enter a full name</span>
+          )}
         </div>
 
         <div className="display-flex">
           <div className="display-flex-col">
             {!valid && (
               <input
-                class="form-field mr"
+                className="form-field mr"
                 type="number"
                 placeholder="Phone Number"
                 name="phone"
@@ -106,7 +107,7 @@ export default function Addparticipants() {
           <div className="display-flex-col">
             {!valid && (
               <input
-                class="form-field"
+                className="form-field"
                 type="email"
                 placeholder="Email"
                 name="email"
@@ -120,15 +121,32 @@ export default function Addparticipants() {
             )}
           </div>
         </div>
+
+        <div className="display-flex-col">
+          {!valid && (
+            <input
+              className="form-field"
+              type="text"
+              placeholder="Address"
+              name="address"
+              value={values.address}
+              onChange={handleInputChange}
+            />
+          )}
+
+          {submitted && !values.address && (
+            <span id="address-error">Please enter an address</span>
+          )}
+        </div>
+
         <div className="display-flex-col">
           <div className="display-flex justify-between">
             <div className="display-flex">
               <input
-                class="form-field mr"
+                className="form-field mr"
                 type="checkbox"
-                placeholder="Intern"
                 name="category"
-                checked={values.category === "intern" ? true : false}
+                checked={values.category === "intern"}
                 value={"intern"}
                 onChange={handleInputChange}
               />
@@ -136,9 +154,8 @@ export default function Addparticipants() {
             </div>
             <div className="display-flex">
               <input
-                class="form-field mr"
+                className="form-field mr"
                 type="checkbox"
-                placeholder="Intern"
                 checked={values.category === "member"}
                 name="category"
                 value={"member"}
@@ -148,9 +165,8 @@ export default function Addparticipants() {
             </div>
             <div className="display-flex">
               <input
-                class="form-field mr"
+                className="form-field mr"
                 type="checkbox"
-                placeholder="Intern"
                 checked={values.category === "Senior Staff"}
                 name="category"
                 value={"Senior Staff"}
@@ -165,8 +181,8 @@ export default function Addparticipants() {
         </div>
 
         {!valid && (
-          <button class="form-field " type="submit">
-            Add Participant
+          <button className="form-field submit" type="submit">
+            Submit
           </button>
         )}
       </form>

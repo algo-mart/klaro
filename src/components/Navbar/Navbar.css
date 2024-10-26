@@ -1,9 +1,12 @@
+/* Navbar.css */
+
+/* General Navbar Styles */
 .header {
   position: fixed;
   width: 100%;
   top: 0;
   left: 0;
-  background-color: transparent;
+  background-color: #ffffff;
   z-index: var(--z-fixed);
 }
 
@@ -17,10 +20,11 @@
 }
 
 .nav__logo {
-  color: var(--first-color);
+  color: black;
   transition: color 0.4s;
   font-size: var(--h2-font-size);
   font-family: var(--second-font);
+
 }
 
 .nav__toggle,
@@ -31,29 +35,43 @@
 }
 
 .nav__cta {
-  background-color: var(--first-color);
-  color: var(--title-color);
+  background-color: #C53678;
+  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  /* transition: background-color 0.3s ease; */
   padding: 0.75rem 1.5rem;
 }
+
 .nav__list {
   display: flex;
   flex-direction: column;
   row-gap: 2.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.nav__item {
+  list-style: none;
 }
 
 .nav__link {
-  color: var(--title-color);
+  color: black;
   font-weight: var(--font-semi-bold);
   transition: color 0.4s;
+  text-decoration: none;
 }
 
 .nav__link:hover {
-  color: var(--first-color);
+  color: #C53678;
 }
+
+.nav__link.active {
+  color: #C53678;
+  font-weight: bold;
+}
+
 
 .nav__close {
   position: absolute;
@@ -65,28 +83,64 @@
   right: 0;
 }
 
+/* Responsive Styles for Smaller Screens */
 @media screen and (max-width: 1150px) {
   .nav__menu {
     position: fixed;
     top: 0;
     right: -100%;
-    background-color: hsla(0, 0%, 6%, 0.2);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     width: 80%;
     height: 100%;
     padding: 6rem 3rem 0;
     transition: right 0.4s;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav__menu.show-menu {
+    right: 0;
+  }
+
+  .nav__list {
+    flex-direction: column;
+    row-gap: 2.5rem;
+    width: 100%;
+  }
+
+  .nav__toggle {
+    display: block;
+  }
+
+  .nav__close {
+    display: block;
   }
 }
 
+/* Styles for Larger Screens */
 @media screen and (min-width: 1150px) {
   .nav {
     height: calc(var(--header-height) + 1rem);
   }
+
   .nav__toggle,
   .nav__close {
     display: none;
+  }
+
+  .nav__menu {
+    position: static;
+    display: flex;
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    width: auto;
+    height: auto;
+    padding: 0;
+    transition: none;
   }
 
   .nav__list {

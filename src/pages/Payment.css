@@ -1,38 +1,70 @@
 .form-container {
   max-width: 500px;
   margin: 0 auto;
+  padding-top: 6rem;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  padding-bottom: 1rem;
+  width: 500px;
+  background-color: #ffffff;
+  margin: auto;
+  
+}
+
+.form-container h1{
+  color: black;
 }
 
 form {
   display: flex;
   flex-direction: column;
+  
 }
 
 label {
+  /* margin-top: 0.5rem; */
   margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: black;
+}
+
+.date-select-meeting {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+  margin-bottom: 2rem;
+  padding-top: 30px;
+}
+
+.date-input{
+  display: flex;
+  flex-direction: column;
 }
 
 .TextField {
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
   padding: 0.5rem;
   font-size: 1rem;
+
 }
 input,
 select {
   margin-bottom: 1rem;
   padding: 0.5rem;
   font-size: 1rem;
+  border: 0;
 }
 
 button {
-  padding: 0.5rem 1rem;
+  padding: 1rem 1rem;
   font-size: 1rem;
-  background-color: hsl(28, 88%, 62%);
+  background-color: #1D1842;
   color: #fff;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: black;
+  background-color: #C53678;
+  
 }
