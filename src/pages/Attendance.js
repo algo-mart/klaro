@@ -35,6 +35,7 @@ const Attendance = () => {
         participant.id === id
           ? { ...participant, present: !participant.present }
           : participant,
+          
       ),
     );
   };
