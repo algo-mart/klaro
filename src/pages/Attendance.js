@@ -22,14 +22,13 @@ const Attendance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [meetingDate, setMeetingDate] = useState("");
 
-  // Function to handle deleting a participant
+  
   const handleDelete = (id) => {
     setParticipants(
       participants.filter((participant) => participant.id !== id),
     );
   };
 
-  // Function to handle toggling participant's present status
   const handlePresentToggle = (id) => {
     setParticipants(
       participants.map((participant) =>
