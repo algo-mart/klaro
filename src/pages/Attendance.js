@@ -22,7 +22,6 @@ const Attendance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [meetingDate, setMeetingDate] = useState("");
 
-  
   const handleDelete = (id) => {
     setParticipants(
       participants.filter((participant) => participant.id !== id),
@@ -35,7 +34,6 @@ const Attendance = () => {
         participant.id === id
           ? { ...participant, present: !participant.present }
           : participant,
-          
       ),
     );
   };
