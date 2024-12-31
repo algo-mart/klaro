@@ -111,17 +111,28 @@ const Attendance = () => {
 
   const categoryOptions = ["Intern", "Member", "Senior Staff"];
 
+
   // Function to handle deleting a participant
   const handleDelete = useCallback((id) => {
     setParticipants((prevParticipants) =>
       prevParticipants.filter((participant) => participant.id !== id),
+
+  const handleDelete = (id) => {
+    setParticipants(
+      participants.filter((participant) => participant.id !== id),
     );
   }, []);
+
 
   // Function to handle toggling participant's present status
   const handlePresentToggle = useCallback((id) => {
     setParticipants((prevParticipants) =>
       prevParticipants.map((participant) =>
+
+  const handlePresentToggle = (id) => {
+    setParticipants(
+      participants.map((participant) =>
+
         participant.id === id
           ? { ...participant, present: !participant.present }
           : participant,
