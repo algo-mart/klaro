@@ -56,7 +56,6 @@ function Monthly() {
       },
     },
   };
-
   // Data for Doughnut Chart
   const doughnutChartData = {
     labels: ["Package A", "Package B", "Package C", "Package D"],
@@ -68,7 +67,7 @@ function Monthly() {
     ],
   };
 
-  
+
   const Card = ({ icon, title, value }) => {
     return (
       <div
