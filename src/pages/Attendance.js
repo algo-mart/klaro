@@ -111,34 +111,24 @@ const Attendance = () => {
 
   const categoryOptions = ["Intern", "Member", "Senior Staff"];
 
-
   // Function to handle deleting a participant
   const handleDelete = useCallback((id) => {
     setParticipants((prevParticipants) =>
       prevParticipants.filter((participant) => participant.id !== id),
-
-  const handleDelete = (id) => {
-    setParticipants(
-      participants.filter((participant) => participant.id !== id),
     );
   }, []);
-
 
   // Function to handle toggling participant's present status
   const handlePresentToggle = useCallback((id) => {
     setParticipants((prevParticipants) =>
       prevParticipants.map((participant) =>
-
-  const handlePresentToggle = (id) => {
-    setParticipants(
-      participants.map((participant) =>
-
         participant.id === id
           ? { ...participant, present: !participant.present }
           : participant,
       ),
     );
   }, []);
+
   // Function to start editing a participant
   const handleEditStart = useCallback((participant) => {
     setEditingParticipant(participant.id);
@@ -173,6 +163,7 @@ const Attendance = () => {
     const { name, value } = e.target;
     setEditForm((prevForm) => ({ ...prevForm, [name]: value }));
   };
+
   // Function to handle form submission
   const handleSubmit = () => {
     // Reset the meeting date and search term
