@@ -1,6 +1,6 @@
 import "./Addparticipants.css";
 import React, { useState } from "react";
-import axios from 'axios';
+import axios from "axios";
 
 export default function Addparticipants() {
   const [values, setValues] = useState({
@@ -25,7 +25,13 @@ export default function Addparticipants() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (values.name && values.email && values.phone && values.address && values.category) {
+    if (
+      values.name &&
+      values.email &&
+      values.phone &&
+      values.address &&
+      values.category
+    ) {
       setValid(true);
       submitParticipant(); // Call the API when the form is valid
     } else {
@@ -46,11 +52,12 @@ export default function Addparticipants() {
       },
     };
 
-    axios.post('{{baseurl}}/participants', data, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    axios
+      .post("{{baseurl}}/participants", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         console.log("Response data:", response.data);
       })

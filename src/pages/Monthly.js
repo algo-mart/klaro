@@ -25,7 +25,7 @@ ChartJS.register(
   DoughnutController,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 function Monthly() {
@@ -35,7 +35,11 @@ function Monthly() {
     datasets: [
       {
         label: "Active eSIM Usage",
-        data: [120, 150, 180, 170, 160, 200, 210, 250, 270, 280, 300, 310, 320, 330, 340, 350, 370, 380, 400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500, 510],
+        data: [
+          120, 150, 180, 170, 160, 200, 210, 250, 270, 280, 300, 310, 320, 330,
+          340, 350, 370, 380, 400, 410, 420, 430, 440, 450, 460, 470, 480, 490,
+          500, 510,
+        ],
         borderColor: "#007bff",
         backgroundColor: "rgba(0, 123, 255, 0.1)",
         fill: true,
@@ -64,7 +68,7 @@ function Monthly() {
     ],
   };
 
-  const Card = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: string | number }) => {
+  const Card = ({ icon, title, value }) => {
     return (
       <div
         className="flex flex-col items-center justify-center border shadow-md rounded-lg p-4 bg-white text-center"
@@ -93,40 +97,59 @@ function Monthly() {
   return (
     <div>
       <div className="flex space-x-4 p-4 bg-gray-100">
-      <Card
-        icon={<span role="img" aria-label="users">👥</span>}
-        title="Active Users"
-        value={1998}
-      />
-      <Card
-        icon={<span role="img" aria-label="eSIM">📱</span>}
-        title="Active eSIM"
-        value={2024}
-      />
-      <Card
-        icon={<span role="img" aria-label="balance">💰</span>}
-        title="Account Balance"
-        value="$2,215"
-      />
-    </div>
-    
-    <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", padding: "20px" }}>
-      {/* Monthly Line Chart in a Card */}
-      <div style={cardStyle}>
-        <h4 style={titleStyle}>Active eSIM Usage (Monthly)</h4>
-        <div style={{ height: "300px" }}>
-          <Line data={lineChartData} options={lineChartOptions} />
-        </div>
+        <Card
+          icon={
+            <span role="img" aria-label="users">
+              👥
+            </span>
+          }
+          title="Active Users"
+          value={1998}
+        />
+        <Card
+          icon={
+            <span role="img" aria-label="eSIM">
+              📱
+            </span>
+          }
+          title="Active eSIM"
+          value={2024}
+        />
+        <Card
+          icon={
+            <span role="img" aria-label="balance">
+              💰
+            </span>
+          }
+          title="Account Balance"
+          value="$2,215"
+        />
       </div>
 
-      {/* Monthly Doughnut Chart in a Card */}
-      <div style={cardStyle}>
-        <h4 style={titleStyle}>Top Packages (Monthly)</h4>
-        <div style={{ height: "300px" }}>
-          <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          flexWrap: "wrap",
+          padding: "20px",
+        }}
+      >
+        {/* Monthly Line Chart in a Card */}
+        <div style={cardStyle}>
+          <h4 style={titleStyle}>Active eSIM Usage (Monthly)</h4>
+          <div style={{ height: "300px" }}>
+            <Line data={lineChartData} options={lineChartOptions} />
+          </div>
+        </div>
+
+        {/* Monthly Doughnut Chart in a Card */}
+        <div style={cardStyle}>
+          <h4 style={titleStyle}>Top Packages (Monthly)</h4>
+          <div style={{ height: "300px" }}>
+            <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

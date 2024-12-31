@@ -6,7 +6,7 @@
 
   margin-left: auto; /* Center the container */
   margin-right: auto; /* Center the container */
-  
+
   padding: 10px;
   /* overflow: hidden; /* Disable container scrolling, allow scrolling within the table 
   position: relative; Required for positioning fixed elements inside */
@@ -24,15 +24,13 @@
 }
 
 .Button {
-  background-color: #1D1842;
+  background-color: #1d1842;
 }
 
 .attendance-table {
   width: 100%; /* Keep the table width at 100% of the container */
   border-collapse: collapse;
 }
-
-
 
 .attendance-table thead th {
   background-color: #ffffff; /* Keep the header background consistent */
@@ -43,8 +41,7 @@
 
 .attendance-table tbody {
   display: block;
- 
-  
+
   width: 100%;
 }
 
@@ -54,7 +51,6 @@
 
 .attendance-table thead,
 .attendance-table tbody tr {
-
   display: table;
   table-layout: fixed; /* Ensure table columns do not resize */
   width: 100%; /* Ensure the width of thead and tbody are the same */
@@ -63,7 +59,7 @@
 .attendance-table th,
 .attendance-table td {
   padding: 8px 5px; /* Reduce padding to make the table more compact */
-  color: #1D1842;
+  color: #1d1842;
   text-align: left;
   white-space: nowrap; /* Prevent content from wrapping */
 }
@@ -100,12 +96,10 @@
   /* color: #f2f2f2; */
 }
 
-.date-inputAttendance input
-{
-  background-color: #ffffff
+.date-inputAttendance input {
+  background-color: #ffffff;
 }
 
-.search-box input
-{
-  background-color: #ffffff
+.search-box input {
+  background-color: #ffffff;
 }

@@ -24,7 +24,6 @@
   transition: color 0.4s;
   font-size: var(--h2-font-size);
   font-family: var(--second-font);
-
 }
 
 .nav__toggle,
@@ -35,7 +34,7 @@
 }
 
 .nav__cta {
-  background-color: #C53678;
+  background-color: #c53678;
   color: white;
   border: none;
   border-radius: 4px;
@@ -64,14 +63,13 @@
 }
 
 .nav__link:hover {
-  color: #C53678;
+  color: #c53678;
 }
 
 .nav__link.active {
-  color: #C53678;
+  color: #c53678;
   font-weight: bold;
 }
-
 
 .nav__close {
   position: absolute;

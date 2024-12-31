@@ -8,17 +8,15 @@
   width: 500px;
   background-color: #ffffff;
   margin: auto;
-  
 }
 
-.form-container h1{
+.form-container h1 {
   color: black;
 }
 
 form {
   display: flex;
   flex-direction: column;
-  
 }
 
 label {
@@ -36,7 +34,7 @@ label {
   padding-top: 30px;
 }
 
-.date-input{
+.date-input {
   display: flex;
   flex-direction: column;
 }
@@ -45,7 +43,6 @@ label {
   margin-bottom: 3rem;
   padding: 0.5rem;
   font-size: 1rem;
-
 }
 input,
 select {
@@ -58,13 +55,12 @@ select {
 button {
   padding: 1rem 1rem;
   font-size: 1rem;
-  background-color: #1D1842;
+  background-color: #1d1842;
   color: #fff;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #C53678;
-  
+  background-color: #c53678;
 }
