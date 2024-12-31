@@ -68,6 +68,7 @@ function Monthly() {
     ],
   };
 
+  
   const Card = ({ icon, title, value }) => {
     return (
       <div
