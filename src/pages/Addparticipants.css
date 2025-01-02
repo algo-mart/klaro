@@ -1,85 +1,125 @@
+@import '../styles/theme.css';
+
 body {
-  background: #ffffff;
-  display: flex;
+  background: var(--bg-paper);
   min-height: 100vh;
-  justify-content: center;
+  display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .form-container-1 {
-  width: fit-content;
-  background-color: #ffffff;
-  margin: auto;
-  /* box-shadow:
-    0 0 20px 0 rgba(0, 0, 0, 0.2),
-    0 5px 5px 0 rgba(0, 0, 0, 0.24); */
-  padding-top: 3rem;
-  padding-right: 4rem;
-  padding-left: 2rem;
-  padding-bottom: 1rem;
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--bg-main);
+  margin: 2rem auto;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2rem;
+  display: block;
 }
 
 .form-container-1 h1 {
-  color: black;
-  margin: 10px;
-}
-
-.register-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  padding: 10px;
-}
-
-.success-message {
-  font-family: "Roboto", sans-serif;
-  background-color: #3f89f8;
-  padding: 15px;
-  color: white;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
   text-align: center;
+  font-weight: 600;
 }
 
 .form-field {
-  margin: 10px 0 10px 0;
-  padding: 20px;
-  font-size: 16px;
-  border: 0;
-  font-family: "Roboto", sans-serif;
+  width: 100%;
+  padding: 0.875rem;
+  margin-bottom: 1.25rem;
+  border: none;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out;
+  background: transparent;
 }
 
+.form-field:focus {
+  outline: none;
+  border-bottom-color: var(--primary-main);
+}
+
+.form-field::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Label styling */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Radio button container */
+.category-selection {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+/* Radio button styling */
+input[type="radio"] {
+  margin-right: 0.5rem;
+}
+
+/* Submit button */
 .submit {
-  font-size: 20px;
+  width: 100%;
+  padding: 0.875rem;
+  background-color: var(--primary-main);
+  color: var(--text-light);
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 1rem;
 }
 
-span {
-  font-family: "Roboto", sans-serif;
-  font-size: 10px;
-  color: red;
-  margin-bottom: 15px;
-  text-align: center;
+.submit:hover {
+  background-color: var(--primary-dark);
 }
 
-input {
-  background: #f2f2f2;
+/* Error message */
+span.error {
+  color: var(--accent-error);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .error {
-  border-style: solid;
-  border: 2px solid #ffa4a4;
+  border-bottom-color: var(--accent-error);
 }
 
-button {
-  background: #1d1842;
-  color: white;
-  cursor: pointer;
+.success-message {
+  background-color: var(--accent-success);
+  color: var(--text-light);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
 }
 
-button:disabled {
-  cursor: default;
-}
-
-.mr {
-  margin-right: 20px;
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .form-container-1 {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
 }
 
 .display-flex-col {
@@ -95,6 +135,25 @@ button:disabled {
 .display-flex p {
   color: black;
 }
+
 .justify-between {
   justify-content: space-around;
+}
+
+.mr {
+  margin-right: 20px;
+}
+
+input {
+  background: var(--bg-paper);
+}
+
+button {
+  background: var(--primary-main);
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
 }

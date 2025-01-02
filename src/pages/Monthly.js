@@ -1,173 +1,256 @@
-import React from "react";
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LineController,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  DoughnutController,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Line, Doughnut } from "react-chartjs-2";
+/* global Chart */
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Card, CardContent, Typography, Grid, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import PeopleIcon from '@mui/icons-material/People';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
-// Register Chart.js components
-ChartJS.register(
-  LineElement,
-  PointElement,
-  LineController,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  DoughnutController,
-  Title,
-  Tooltip,
-  Legend,
-);
-
-function Monthly() {
-  // Data for Monthly Line Chart
-  const lineChartData = {
-    labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`), // Days of the month
-    datasets: [
-      {
-        label: "Active eSIM Usage",
-        data: [
-          120, 150, 180, 170, 160, 200, 210, 250, 270, 280, 300, 310, 320, 330,
-          340, 350, 370, 380, 400, 410, 420, 430, 440, 450, 460, 470, 480, 490,
-          500, 510,
-        ],
-        borderColor: "#007bff",
-        backgroundColor: "rgba(0, 123, 255, 0.1)",
-        fill: true,
-        tension: 0.4,
-      },
-    ],
-  };
-
-  const lineChartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
+const Monthly = () => {
+  const lineChartRef = useRef(null);
+  const pieChartRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState("Senior Staff");
+  
+  // This would ideally come from a shared state management solution
+  const [participants] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      category: "Senior Staff",
+      present: true,
+      amountPaid: "5000",
     },
+    {
+      id: 2,
+      name: "Jane Smith",
+      category: "Senior Staff",
+      present: false,
+      amountPaid: "3000",
+    },
+    {
+      id: 3,
+      name: "Alex Johnson",
+      category: "Senior Staff",
+      present: true,
+      amountPaid: "4000",
+    },
+    {
+      id: 4,
+      name: "Sarah Wilson",
+      category: "Member",
+      present: true,
+      amountPaid: "2500",
+    },
+    {
+      id: 5,
+      name: "Mike Brown",
+      category: "Member",
+      present: false,
+      amountPaid: "2000",
+    },
+    {
+      id: 6,
+      name: "Emily Davis",
+      category: "Intern",
+      present: true,
+      amountPaid: "1000",
+    },
+    {
+      id: 7,
+      name: "Tom Harris",
+      category: "Intern",
+      present: false,
+      amountPaid: "800",
+    },
+  ]);
+
+  const handleCategoryChange = (event, newCategory) => {
+    if (newCategory !== null) {
+      setSelectedCategory(newCategory);
+    }
   };
-  // Data for Doughnut Chart
-  const doughnutChartData = {
-    labels: ["Package A", "Package B", "Package C", "Package D"],
-    datasets: [
-      {
-        data: [30, 25, 20, 25], // Example package data
-        backgroundColor: ["#007bff", "#6f42c1", "#ffc107", "#dc3545"],
+
+  // Calculate statistics for selected category
+  const calculateCategoryStats = () => {
+    const categoryParticipants = participants.filter(p => p.category === selectedCategory);
+    const present = categoryParticipants.filter(p => p.present).length;
+    const absent = categoryParticipants.length - present;
+    const totalAmount = categoryParticipants.reduce((sum, p) => sum + (parseFloat(p.amountPaid) || 0), 0);
+    return { present, absent, totalAmount };
+  };
+
+  const stats = calculateCategoryStats();
+
+  useEffect(() => {
+    // Line Chart
+    const lineCtx = lineChartRef.current.getContext('2d');
+    const lineChart = new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+        datasets: [{
+          label: `${selectedCategory} Attendance`,
+          data: [100, 300, 400, 200, 500, 400, 300],
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
       },
-    ],
-  };
-
-  const Card = ({ icon, title, value }) => {
-    return (
-      <div
-        className="flex flex-col items-center justify-center border shadow-md rounded-lg p-4 bg-white text-center"
-        style={{ width: "200px", height: "120px" }}
-      >
-        <div className="text-3xl mb-2">{icon}</div>
-        <div className="text-lg font-medium">{title}</div>
-        <div className="text-2xl font-bold">{value}</div>
-      </div>
-    );
-  };
-
-  const doughnutChartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "right",
-        labels: {
-          boxWidth: 20,
-          padding: 15,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: false
+          }
         },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              drawBorder: false
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+
+    // Pie Chart for payment distribution
+    const pieCtx = pieChartRef.current.getContext('2d');
+    const pieChart = new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Paid', 'Pending'],
+        datasets: [{
+          data: [
+            stats.totalAmount,
+            stats.absent * (selectedCategory === 'Senior Staff' ? 5000 : selectedCategory === 'Member' ? 2500 : 1000) // Different expected amounts per category
+          ],
+          backgroundColor: ['#6366f1', '#ef4444'],
+          borderWidth: 0
+        }]
       },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
+        cutout: '60%'
+      }
+    });
+
+    return () => {
+      lineChart.destroy();
+      pieChart.destroy();
+    };
+  }, [stats.totalAmount, stats.absent, selectedCategory]);
+
+  const summaryCards = [
+    {
+      title: `Total Present (${selectedCategory})`,
+      value: stats.present.toString(),
+      icon: <PeopleIcon sx={{ fontSize: 40, color: '#6366f1' }} />,
     },
-  };
+    {
+      title: `Total Absentee (${selectedCategory})`,
+      value: stats.absent.toString(),
+      icon: <PersonOffIcon sx={{ fontSize: 40, color: '#6366f1' }} />,
+    },
+    {
+      title: `Account Balance (${selectedCategory})`,
+      value: `₦${stats.totalAmount.toLocaleString()}`,
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 40, color: '#6366f1' }} />,
+    },
+  ];
 
   return (
-    <div>
-      <div className="flex space-x-4 p-4 bg-gray-100">
-        <Card
-          icon={
-            <span role="img" aria-label="users">
-              👥
-            </span>
-          }
-          title="Active Users"
-          value={1998}
-        />
-        <Card
-          icon={
-            <span role="img" aria-label="eSIM">
-              📱
-            </span>
-          }
-          title="Active eSIM"
-          value={2024}
-        />
-        <Card
-          icon={
-            <span role="img" aria-label="balance">
-              💰
-            </span>
-          }
-          title="Account Balance"
-          value="$2,215"
-        />
-      </div>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Category Toggle Buttons */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+        <ToggleButtonGroup
+          value={selectedCategory}
+          exclusive
+          onChange={handleCategoryChange}
+          aria-label="category selection"
+          sx={{
+            '& .MuiToggleButton-root.Mui-selected': {
+              backgroundColor: '#6366f1',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#5558d9',
+              },
+            },
+          }}
+        >
+          <ToggleButton value="Senior Staff" aria-label="senior staff">
+            Senior Staff
+          </ToggleButton>
+          <ToggleButton value="Member" aria-label="member">
+            Member
+          </ToggleButton>
+          <ToggleButton value="Intern" aria-label="intern">
+            Intern
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          flexWrap: "wrap",
-          padding: "20px",
-        }}
-      >
-        {/* Monthly Line Chart in a Card */}
-        <div style={cardStyle}>
-          <h4 style={titleStyle}>Active eSIM Usage (Monthly)</h4>
-          <div style={{ height: "300px" }}>
-            <Line data={lineChartData} options={lineChartOptions} />
-          </div>
-        </div>
+      {/* Summary Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {summaryCards.map((card, index) => (
+          <Grid item xs={12} sm={4} key={index}>
+            <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 'none', bgcolor: '#f8fafc' }}>
+              <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ bgcolor: 'white', p: 1, borderRadius: 2 }}>
+                  {card.icon}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {card.title}
+                  </Typography>
+                  <Typography variant="h5" component="div" fontWeight="bold">
+                    {card.value}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
 
-        {/* Monthly Doughnut Chart in a Card */}
-        <div style={cardStyle}>
-          <h4 style={titleStyle}>Top Packages (Monthly)</h4>
-          <div style={{ height: "300px" }}>
-            <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Charts */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 'none', bgcolor: '#f8fafc' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2 }}>{selectedCategory} Attendance Trend</Typography>
+              <Typography variant="h4" sx={{ mb: 3 }}>Weekly Overview</Typography>
+              <Box sx={{ height: 300 }}>
+                <canvas ref={lineChartRef} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 'none', bgcolor: '#f8fafc' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 3 }}>Payment Distribution</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ width: 300, height: 300 }}>
+                  <canvas ref={pieChartRef} />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
-}
-
-// Inline styles for the cards
-const cardStyle = {
-  backgroundColor: "#fff",
-  borderRadius: "10px",
-  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-  padding: "20px",
-  flex: "1 1 calc(50% - 20px)",
-  minWidth: "300px",
-};
-
-const titleStyle = {
-  margin: "0 0 20px",
-  color: "#333",
-  fontSize: "18px",
-  fontWeight: "bold",
 };
 
 export default Monthly;

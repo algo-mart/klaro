@@ -1,66 +1,138 @@
+@import '../styles/theme.css';
+
 .form-container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding-top: 6rem;
-  padding-right: 1rem;
-  padding-left: 1rem;
-  padding-bottom: 1rem;
-  width: 500px;
-  background-color: #ffffff;
-  margin: auto;
+  width: 100%;
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background-color: var(--bg-main);
 }
 
 .form-container h1 {
-  color: black;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  /* margin-top: 0.5rem; */
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: black;
-}
-
-.date-select-meeting {
-  display: flex;
-  align-items: center;
-  margin-top: 2px;
+  color: var(--text-primary);
   margin-bottom: 2rem;
-  padding-top: 30px;
+  font-size: 1.75rem;
+  text-align: center;
+  font-weight: 600;
 }
 
-.date-input {
-  display: flex;
-  flex-direction: column;
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
-.TextField {
-  margin-bottom: 3rem;
-  padding: 0.5rem;
-  font-size: 1rem;
+/* Labels */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
+
+/* Inputs */
 input,
 select {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
+  width: 100%;
+  padding: 0.875rem;
+  border: none;
+  border-bottom: 2px solid var(--border-color);
   font-size: 1rem;
-  border: 0;
+  background: transparent;
+  transition: border-color 0.2s ease-in-out;
+  margin-bottom: 1.25rem;
 }
 
+input:focus,
+select:focus {
+  outline: none;
+  border-bottom-color: var(--primary-main);
+}
+
+input::placeholder,
+select::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Meeting Date and Type Container */
+.date-select-meeting {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.date-select-meeting > div {
+  flex: 1;
+}
+
+/* Amount Input Groups */
+.amount-group {
+  margin-bottom: 1.5rem;
+}
+
+.amount-group label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.amount-group input {
+  margin-bottom: 0;
+}
+
+/* Submit Button */
 button {
-  padding: 1rem 1rem;
+  width: 100%;
+  padding: 0.875rem;
   font-size: 1rem;
-  background-color: #1d1842;
-  color: #fff;
+  background-color: var(--primary-main);
+  color: var(--text-light);
   border: none;
+  border-radius: 25px;
   cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: 1rem;
 }
 
 button:hover {
-  background-color: #c53678;
+  background-color: var(--primary-dark);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Select Dropdown */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+/* Error States */
+.error {
+  border-bottom-color: var(--accent-error);
+}
+
+.error-message {
+  color: var(--accent-error);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .form-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .date-select-meeting {
+    flex-direction: column;
+    gap: 0;
+  }
 }

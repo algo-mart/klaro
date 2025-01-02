@@ -1,6 +1,24 @@
-import "./Addparticipants.css";
 import React, { useState } from "react";
+import { TextField, Box, Typography, Grid, FormControlLabel, Radio, RadioGroup, FormControl, FormLabel, styled } from "@mui/material";
 import axios from "axios";
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: '#fff',
+    '& fieldset': {
+      border: 'none',
+      borderBottom: '1px solid #e0e0e0'
+    },
+    '&:hover fieldset': {
+      border: 'none',
+      borderBottom: '1px solid #e0e0e0'
+    },
+    '&.Mui-focused fieldset': {
+      border: 'none',
+      borderBottom: `2px solid ${theme.palette.primary.main}`
+    }
+  }
+}));
 
 export default function Addparticipants() {
   const [values, setValues] = useState({
@@ -25,15 +43,9 @@ export default function Addparticipants() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (
-      values.name &&
-      values.email &&
-      values.phone &&
-      values.address &&
-      values.category
-    ) {
+    if (values.name && values.email && values.phone && values.address && values.category) {
       setValid(true);
-      submitParticipant(); // Call the API when the form is valid
+      submitParticipant();
     } else {
       setValid(false);
     }
@@ -62,137 +74,119 @@ export default function Addparticipants() {
         console.log("Response data:", response.data);
       })
       .catch((error) => {
-        console.error("There was an error submitting the form:", error);
+        console.error("There was an error submitting the form:", error);          
       });
   };
 
   return (
-    <div className="form-container-1">
-      <h1>Add Participant</h1>
-      <form className="register-form" onSubmit={handleSubmit}>
+    <Box sx={{ p: 3, maxWidth: 800, margin: '0 auto', marginTop: 5}}>
+      
+
+      <form onSubmit={handleSubmit}>
         {submitted && valid && (
-          <div className="success-message">
-            <h3> Welcome {values.name} </h3>
-            <div> Your registration was successful! </div>
-          </div>
+          <Box sx={{ mb: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 1 }}>
+            <Typography variant="subtitle1" color="success.main">
+              Welcome {values.name}! Your registration was successful!
+            </Typography>
+          </Box>
         )}
 
-        <div className="display-flex-col">
-          {!valid && (
-            <input
-              className="form-field"
-              type="text"
-              placeholder="Full name"
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <StyledTextField
+              fullWidth
+              label="Full Name"
               name="name"
               value={values.name}
               onChange={handleInputChange}
+              error={submitted && !values.name}
+              helperText={submitted && !values.name ? "Please enter a full name" : ""}
+              required
             />
-          )}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <StyledTextField
+              fullWidth
+              type="tel"
+              label="Phone Number"
+              name="phone"
+              value={values.phone}
+              onChange={handleInputChange}
+              error={submitted && !values.phone}
+              helperText={submitted && !values.phone ? "Please enter a phone number" : ""}
+              required
+            />
+          </Grid>
 
-          {submitted && !values.name && (
-            <span id="name-error">Please enter a full name</span>
-          )}
-        </div>
+          <Grid item xs={12} md={6}>
+            <StyledTextField
+              fullWidth
+              type="email"
+              label="Email"
+              name="email"
+              value={values.email}
+              onChange={handleInputChange}
+              error={submitted && !values.email}
+              helperText={submitted && !values.email ? "Please enter an email address" : ""}
+              required
+            />
+          </Grid>
 
-        <div className="display-flex">
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                className="form-field mr"
-                type="number"
-                placeholder="Phone Number"
-                name="phone"
-                value={values.phone}
-                onChange={handleInputChange}
-              />
-            )}
-
-            {submitted && !values.phone && (
-              <span id="phone-number-error">Please enter a phone number</span>
-            )}
-          </div>
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                className="form-field"
-                type="email"
-                placeholder="Email"
-                name="email"
-                value={values.email}
-                onChange={handleInputChange}
-              />
-            )}
-
-            {submitted && !values.email && (
-              <span id="email-error">Please enter an email address</span>
-            )}
-          </div>
-        </div>
-
-        <div className="display-flex-col">
-          {!valid && (
-            <input
-              className="form-field"
-              type="text"
-              placeholder="Address"
+          <Grid item xs={12}>
+            <StyledTextField
+              fullWidth
+              label="Address"
               name="address"
               value={values.address}
               onChange={handleInputChange}
+              error={submitted && !values.address}
+              helperText={submitted && !values.address ? "Please enter an address" : ""}
+              required
             />
-          )}
+          </Grid>
 
-          {submitted && !values.address && (
-            <span id="address-error">Please enter an address</span>
-          )}
-        </div>
+          <Grid item xs={12}>
+            <FormControl error={submitted && !values.category} required>
+              <FormLabel>Category</FormLabel>
+              <RadioGroup
+                row
+                name="category"
+                value={values.category}
+                onChange={handleInputChange}
+              >
+                <FormControlLabel value="intern" control={<Radio />} label="Intern" />
+                <FormControlLabel value="member" control={<Radio />} label="Member" />
+                <FormControlLabel value="Senior Staff" control={<Radio />} label="Senior Staff" />
+              </RadioGroup>
+              {submitted && !values.category && (
+                <Typography variant="caption" color="error">
+                  Please select a category
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
 
-        <div className="display-flex-col">
-          <div className="display-flex justify-between">
-            <div className="display-flex">
-              <input
-                className="form-field mr"
-                type="checkbox"
-                name="category"
-                checked={values.category === "intern"}
-                value={"intern"}
-                onChange={handleInputChange}
-              />
-              <p>Intern</p>
-            </div>
-            <div className="display-flex">
-              <input
-                className="form-field mr"
-                type="checkbox"
-                checked={values.category === "member"}
-                name="category"
-                value={"member"}
-                onChange={handleInputChange}
-              />
-              <p>Member</p>
-            </div>
-            <div className="display-flex">
-              <input
-                className="form-field mr"
-                type="checkbox"
-                checked={values.category === "Senior Staff"}
-                name="category"
-                value={"Senior Staff"}
-                onChange={handleInputChange}
-              />
-              <p>Senior Staff</p>
-            </div>
-          </div>
-          {submitted && !values.category && (
-            <span id="email-error">Please select a category</span>
-          )}
-        </div>
-
-        {!valid && (
-          <button className="form-field submit" type="submit">
-            Submit
-          </button>
-        )}
+          <Grid item xs={12} sx={{ textAlign: 'right', mt: 2 }}>
+            <button
+              type="submit"
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#1976d2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                '&:hover': {
+                  backgroundColor: '#1565c0'
+                }
+              }}
+            >
+              Submit
+            </button>
+          </Grid>
+        </Grid>
       </form>
-    </div>
+    </Box>
   );
 }

@@ -36,7 +36,7 @@ const Payment = () => {
 
   return (
     <div className="form-container">
-      <h1>Daily Payment Entry</h1>
+      
       <form onSubmit={handleSubmit}>
         <div className="date-select-meeting">
           <TextField

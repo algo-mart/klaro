@@ -1,42 +1,42 @@
-.attendance-table-container {
-  width: 90%; /* Set the width to 70% */
-  height: 70vh; /* Set the height to 60% of the viewport height */
-  background-color: #ffffff;
-  /* background-color: white; */
+@import '../styles/theme.css';
 
-  margin-left: auto; /* Center the container */
-  margin-right: auto; /* Center the container */
+.attendance-table-container {
+  width: 90%; 
+  height: 70vh; 
+  background-color: var(--bg-paper);
+  margin-left: auto; 
+  margin-right: auto; 
 
   padding: 10px;
-  /* overflow: hidden; /* Disable container scrolling, allow scrolling within the table 
-  position: relative; Required for positioning fixed elements inside */
 }
 
 .search-date-container {
   display: flex;
   justify-content: space-between;
   margin-left: 20px;
-  position: sticky; /* Keeps the search container fixed when scrolling */
-  top: 0; /* Sticks to the top of the container */
-  background-color: #ffffff; /* Match the background to avoid visual artifacts */
-  z-index: 10; /* Ensures it stays on top of other content */
+  position: sticky; 
+  top: 0; 
+  background-color: var(--bg-paper); 
+  z-index: 10; 
   padding-bottom: 5px;
 }
 
 .Button {
-  background-color: #1d1842;
+  background-color: var(--primary-main);
 }
 
 .attendance-table {
-  width: 100%; /* Keep the table width at 100% of the container */
+  width: 100%; 
   border-collapse: collapse;
+  background-color: var(--bg-main);
 }
 
 .attendance-table thead th {
-  background-color: #ffffff; /* Keep the header background consistent */
-  position: sticky; /* Keeps the header fixed when scrolling */
-  top: 60px; /* Adjust this value to the height of the search container */
-  z-index: 5; /* Ensure header stays above the scrolling content */
+  background-color: var(--primary-main); 
+  position: sticky; 
+  top: 60px; 
+  z-index: 5; 
+  color: var(--text-light);
 }
 
 .attendance-table tbody {
@@ -52,30 +52,29 @@
 .attendance-table thead,
 .attendance-table tbody tr {
   display: table;
-  table-layout: fixed; /* Ensure table columns do not resize */
-  width: 100%; /* Ensure the width of thead and tbody are the same */
+  table-layout: fixed; 
+  width: 100%; 
 }
 
 .attendance-table th,
 .attendance-table td {
-  padding: 8px 5px; /* Reduce padding to make the table more compact */
-  color: #1d1842;
+  padding: 8px 5px; 
+  color: var(--text-primary);
   text-align: left;
-  white-space: nowrap; /* Prevent content from wrapping */
+  white-space: nowrap; 
 }
 
 .attendance-table .serial-cell {
-  width: 40px; /* Set a fixed width for the serial number column */
-  padding-right: 0; /* Remove right padding */
+  width: 40px; 
+  padding-right: 0; 
 }
 
 .attendance-table .name-cell {
-  padding-left: 5px; /* Minimal left padding for the name cell */
+  padding-left: 5px; 
 }
 
 .attendance-table tr:nth-child(even) {
-  background-color: #ffffff;
-  /* color: white; */
+  background-color: var(--bg-main);
 }
 
 .Textfield {
@@ -84,22 +83,20 @@
 }
 
 .edit-input {
-  width: 100%; /* Ensure inputs in edit mode fit the cell */
+  width: 100%; 
 }
 
-/* Center align icons within the table cells */
 .attendance-table td .icon,
 .attendance-table th .icon {
   display: flex;
-  justify-content: center; /* Center icons horizontally */
-  align-items: center; /* Center icons vertically */
-  /* color: #f2f2f2; */
+  justify-content: center; 
+  align-items: center; 
 }
 
 .date-inputAttendance input {
-  background-color: #ffffff;
+  background-color: var(--bg-paper);
 }
 
 .search-box input {
-  background-color: #ffffff;
+  background-color: var(--bg-paper);
 }
