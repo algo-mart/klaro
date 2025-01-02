@@ -1,23 +1,34 @@
 import React, { useState } from "react";
-import { TextField, Box, Typography, Grid, FormControlLabel, Radio, RadioGroup, FormControl, FormLabel, styled } from "@mui/material";
+import {
+  TextField,
+  Box,
+  Typography,
+  Grid,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  FormControl,
+  FormLabel,
+  styled,
+} from "@mui/material";
 import axios from "axios";
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    backgroundColor: '#fff',
-    '& fieldset': {
-      border: 'none',
-      borderBottom: '1px solid #e0e0e0'
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#fff",
+    "& fieldset": {
+      border: "none",
+      borderBottom: "1px solid #e0e0e0",
     },
-    '&:hover fieldset': {
-      border: 'none',
-      borderBottom: '1px solid #e0e0e0'
+    "&:hover fieldset": {
+      border: "none",
+      borderBottom: "1px solid #e0e0e0",
     },
-    '&.Mui-focused fieldset': {
-      border: 'none',
-      borderBottom: `2px solid ${theme.palette.primary.main}`
-    }
-  }
+    "&.Mui-focused fieldset": {
+      border: "none",
+      borderBottom: `2px solid ${theme.palette.primary.main}`,
+    },
+  },
 }));
 
 export default function Addparticipants() {
@@ -43,7 +54,13 @@ export default function Addparticipants() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (values.name && values.email && values.phone && values.address && values.category) {
+    if (
+      values.name &&
+      values.email &&
+      values.phone &&
+      values.address &&
+      values.category
+    ) {
       setValid(true);
       submitParticipant();
     } else {
@@ -74,17 +91,15 @@ export default function Addparticipants() {
         console.log("Response data:", response.data);
       })
       .catch((error) => {
-        console.error("There was an error submitting the form:", error);          
+        console.error("There was an error submitting the form:", error);
       });
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, margin: '0 auto', marginTop: 5}}>
-      
-
+    <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto", marginTop: 5 }}>
       <form onSubmit={handleSubmit}>
         {submitted && valid && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 1 }}>
+          <Box sx={{ mb: 3, p: 2, bgcolor: "#e8f5e9", borderRadius: 1 }}>
             <Typography variant="subtitle1" color="success.main">
               Welcome {values.name}! Your registration was successful!
             </Typography>
@@ -100,7 +115,9 @@ export default function Addparticipants() {
               value={values.name}
               onChange={handleInputChange}
               error={submitted && !values.name}
-              helperText={submitted && !values.name ? "Please enter a full name" : ""}
+              helperText={
+                submitted && !values.name ? "Please enter a full name" : ""
+              }
               required
             />
           </Grid>
@@ -113,7 +130,9 @@ export default function Addparticipants() {
               value={values.phone}
               onChange={handleInputChange}
               error={submitted && !values.phone}
-              helperText={submitted && !values.phone ? "Please enter a phone number" : ""}
+              helperText={
+                submitted && !values.phone ? "Please enter a phone number" : ""
+              }
               required
             />
           </Grid>
@@ -127,7 +146,11 @@ export default function Addparticipants() {
               value={values.email}
               onChange={handleInputChange}
               error={submitted && !values.email}
-              helperText={submitted && !values.email ? "Please enter an email address" : ""}
+              helperText={
+                submitted && !values.email
+                  ? "Please enter an email address"
+                  : ""
+              }
               required
             />
           </Grid>
@@ -140,7 +163,9 @@ export default function Addparticipants() {
               value={values.address}
               onChange={handleInputChange}
               error={submitted && !values.address}
-              helperText={submitted && !values.address ? "Please enter an address" : ""}
+              helperText={
+                submitted && !values.address ? "Please enter an address" : ""
+              }
               required
             />
           </Grid>
@@ -154,9 +179,21 @@ export default function Addparticipants() {
                 value={values.category}
                 onChange={handleInputChange}
               >
-                <FormControlLabel value="intern" control={<Radio />} label="Intern" />
-                <FormControlLabel value="member" control={<Radio />} label="Member" />
-                <FormControlLabel value="Senior Staff" control={<Radio />} label="Senior Staff" />
+                <FormControlLabel
+                  value="intern"
+                  control={<Radio />}
+                  label="Intern"
+                />
+                <FormControlLabel
+                  value="member"
+                  control={<Radio />}
+                  label="Member"
+                />
+                <FormControlLabel
+                  value="Senior Staff"
+                  control={<Radio />}
+                  label="Senior Staff"
+                />
               </RadioGroup>
               {submitted && !values.category && (
                 <Typography variant="caption" color="error">
@@ -166,20 +203,20 @@ export default function Addparticipants() {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sx={{ textAlign: 'right', mt: 2 }}>
+          <Grid item xs={12} sx={{ textAlign: "right", mt: 2 }}>
             <button
               type="submit"
               style={{
-                padding: '12px 24px',
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                '&:hover': {
-                  backgroundColor: '#1565c0'
-                }
+                padding: "12px 24px",
+                backgroundColor: "#1976d2",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                "&:hover": {
+                  backgroundColor: "#1565c0",
+                },
               }}
             >
               Submit

@@ -1,40 +1,46 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import './styles/theme.css';
-import './styles/layout.css';
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+  useLocation,
+} from "react-router-dom";
+import "./styles/theme.css";
+import "./styles/layout.css";
 
 // Import components
-import Navbar from './components/Navbar/Navbar';
+import Navbar from "./components/Navbar/Navbar";
 
 // Import pages
 import Dashboard from "./pages/Dashboard";
-import Attendance from './pages/Attendance';
-import Payment from './pages/Payment';
+import Attendance from "./pages/Attendance";
+import Payment from "./pages/Payment";
 import Signin from "./pages/Signin";
-import Monthly from './pages/Monthly';
-import Addparticipants from './pages/Addparticipants';
+import Monthly from "./pages/Monthly";
+import Addparticipants from "./pages/Addparticipants";
 
 // Page Title Component
 const PageTitle = () => {
   const location = useLocation();
-  
+
   const getPageTitle = () => {
     const path = location.pathname;
     switch (path) {
-      case '/':
-        return 'Dashboard';
-      case '/attendance':
-        return 'Meeting Attendance';
-      case '/payment':
-        return 'Daily Payment Entry';
-      case '/signin':
-        return 'Sign In';
-      case '/monthly':
-        return 'Monthly Review';
-      case '/addparticipants':
-        return 'Add New Participants';
+      case "/":
+        return "Dashboard";
+      case "/attendance":
+        return "Meeting Attendance";
+      case "/payment":
+        return "Daily Payment Entry";
+      case "/signin":
+        return "Sign In";
+      case "/monthly":
+        return "Monthly Review";
+      case "/addparticipants":
+        return "Add New Participants";
       default:
-        return 'Dashboard';
+        return "Dashboard";
     }
   };
 
@@ -67,37 +73,45 @@ function App() {
   };
 
   const navLinks = [
-    { path: '/', name: 'Dashboard', icon: '📊' },
-    { path: '/attendance', name: 'Attendance', icon: '📋' },
-    { path: '/payment', name: 'Daily Payment', icon: '💳' },
-    { path: '/signin', name: 'Sign In', icon: '🔐' },
-    { path: '/monthly', name: 'Monthly Review', icon: '📅' },
-    { path: '/addparticipants', name: 'Add New Participants', icon: '👥' }
+    { path: "/", name: "Dashboard", icon: "📊" },
+    { path: "/attendance", name: "Attendance", icon: "📋" },
+    { path: "/payment", name: "Daily Payment", icon: "💳" },
+    { path: "/signin", name: "Sign In", icon: "🔐" },
+    { path: "/monthly", name: "Monthly Review", icon: "📅" },
+    { path: "/addparticipants", name: "Add New Participants", icon: "👥" },
   ];
 
   return (
     <Router>
       <div className="app-container">
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="mobile-menu-button"
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
         >
-          {isMobileMenuOpen ? '✕' : '☰'}
+          {isMobileMenuOpen ? "✕" : "☰"}
         </button>
 
         {/* Mobile Overlay */}
-        <div 
-          className={`mobile-overlay ${isMobileMenuOpen ? 'open' : ''}`}
+        <div
+          className={`mobile-overlay ${isMobileMenuOpen ? "open" : ""}`}
           onClick={handleOverlayClick}
         />
 
         {/* Sidebar */}
-        <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <aside className={`sidebar ${isMobileMenuOpen ? "open" : ""}`}>
           <div className="logo-container">
             <img src="/logo.png" alt="klaro logo" />
-            <h1 style={{ marginLeft: '12px', fontSize: '1.5rem', fontWeight: '600' }}>KLARO</h1>
+            <h1
+              style={{
+                marginLeft: "12px",
+                fontSize: "1.5rem",
+                fontWeight: "600",
+              }}
+            >
+              KLARO
+            </h1>
           </div>
 
           <nav className="nav-menu">
@@ -106,7 +120,9 @@ function App() {
                 key={path}
                 to={path}
                 onClick={handleNavLinkClick}
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active" : ""}`
+                }
               >
                 <span className="icon">{icon}</span>
                 <span className="text">{name}</span>

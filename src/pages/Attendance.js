@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Table,
@@ -16,72 +16,72 @@ import {
   InputBase,
   Button,
   Chip,
-  Typography
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import ExportIcon from '@mui/icons-material/FileDownload';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import EditIcon from '@mui/icons-material/Edit';
+  Typography,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import ExportIcon from "@mui/icons-material/FileDownload";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import EditIcon from "@mui/icons-material/Edit";
 
 // Styled components
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
-  backgroundColor: '#fff',
-  borderRadius: '12px',
-  boxShadow: 'none',
-  border: 'none',
-  margin: '20px 0'
+  backgroundColor: "#fff",
+  borderRadius: "12px",
+  boxShadow: "none",
+  border: "none",
+  margin: "20px 0",
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  borderBottom: '1px solid #f0f0f0',
-  padding: '16px',
-  '&.header': {
-    backgroundColor: '#fff',
+  borderBottom: "1px solid #f0f0f0",
+  padding: "16px",
+  "&.header": {
+    backgroundColor: "#fff",
     fontWeight: 600,
-    color: theme.palette.text.secondary
-  }
+    color: theme.palette.text.secondary,
+  },
 }));
 
-const SearchBar = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  backgroundColor: '#fff',
-  borderRadius: '8px',
-  padding: '8px 16px',
-  width: '300px',
-  border: '1px solid #e0e0e0'
+const SearchBar = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  backgroundColor: "#fff",
+  borderRadius: "8px",
+  padding: "8px 16px",
+  width: "300px",
+  border: "1px solid #e0e0e0",
 }));
 
 const StatusChip = styled(Chip)(({ status }) => ({
-  borderRadius: '16px',
+  borderRadius: "16px",
   fontWeight: 500,
-  ...(status === 'Invited' && {
-    backgroundColor: '#e8f5e9',
-    color: '#4caf50'
+  ...(status === "Invited" && {
+    backgroundColor: "#e8f5e9",
+    color: "#4caf50",
   }),
-  ...(status === 'Absent' && {
-    backgroundColor: '#ffebee',
-    color: '#f44336'
+  ...(status === "Absent" && {
+    backgroundColor: "#ffebee",
+    color: "#f44336",
   }),
-  ...(status === 'Employed' && {
-    backgroundColor: '#e3f2fd',
-    color: '#1976d2'
+  ...(status === "Employed" && {
+    backgroundColor: "#e3f2fd",
+    color: "#1976d2",
   }),
-  ...(status === 'Hired' && {
-    backgroundColor: '#f3e5f5',
-    color: '#9c27b0'
-  })
+  ...(status === "Hired" && {
+    backgroundColor: "#f3e5f5",
+    color: "#9c27b0",
+  }),
 }));
 
 const Attendance = () => {
   const [selected, setSelected] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [participants, setParticipants] = useState([
@@ -168,11 +168,18 @@ const Attendance = () => {
 
   // Filter participants based on search query and filters
   const filteredParticipants = useMemo(() => {
-    return participants.filter(participant => {
-      const matchesSearch = participant.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = categoryFilter ? participant.category === categoryFilter : true;
-      const matchesStatus = statusFilter ? 
-        (statusFilter === 'Present' ? participant.present : !participant.present) : true;
+    return participants.filter((participant) => {
+      const matchesSearch = participant.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter
+        ? participant.category === categoryFilter
+        : true;
+      const matchesStatus = statusFilter
+        ? statusFilter === "Present"
+          ? participant.present
+          : !participant.present
+        : true;
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
@@ -192,7 +199,7 @@ const Attendance = () => {
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelected(filteredParticipants.map(item => item.id));
+      setSelected(filteredParticipants.map((item) => item.id));
     } else {
       setSelected([]);
     }
@@ -227,8 +234,8 @@ const Attendance = () => {
   const handleSave = (id) => {
     setParticipants(
       participants.map((participant) =>
-        participant.id === id ? { ...participant, ...editData } : participant
-      )
+        participant.id === id ? { ...participant, ...editData } : participant,
+      ),
     );
     setEditingId(null);
     setEditData({});
@@ -248,9 +255,11 @@ const Attendance = () => {
   };
 
   const togglePresent = (id) => {
-    setParticipants(participants.map(p => 
-      p.id === id ? { ...p, present: !p.present } : p
-    ));
+    setParticipants(
+      participants.map((p) =>
+        p.id === id ? { ...p, present: !p.present } : p,
+      ),
+    );
   };
 
   const categoryTotals = participants.reduce((acc, participant) => {
@@ -262,27 +271,34 @@ const Attendance = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header Actions */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 2 }}>
           <SearchBar>
-            <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-            <InputBase 
-              placeholder="Search..." 
+            <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
+            <InputBase
+              placeholder="Search..."
               value={searchQuery}
               onChange={handleSearchChange}
             />
           </SearchBar>
-          
+
           <Select
             value={categoryFilter}
             onChange={handleCategoryFilterChange}
             displayEmpty
             sx={{
-              bgcolor: '#fff',
+              bgcolor: "#fff",
               minWidth: 120,
-              '& .MuiOutlinedInput-notchedOutline': {
-                border: '1px solid #e0e0e0'
-              }
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "1px solid #e0e0e0",
+              },
             }}
           >
             <MenuItem value="">All Categories</MenuItem>
@@ -296,11 +312,11 @@ const Attendance = () => {
             onChange={handleStatusFilterChange}
             displayEmpty
             sx={{
-              bgcolor: '#fff',
+              bgcolor: "#fff",
               minWidth: 120,
-              '& .MuiOutlinedInput-notchedOutline': {
-                border: '1px solid #e0e0e0'
-              }
+              "& .MuiOutlinedInput-notchedOutline": {
+                border: "1px solid #e0e0e0",
+              },
             }}
           >
             <MenuItem value="">All Status</MenuItem>
@@ -309,25 +325,25 @@ const Attendance = () => {
           </Select>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            sx={{ bgcolor: '#1976d2', color: '#fff' }}
+            sx={{ bgcolor: "#1976d2", color: "#fff" }}
           >
             Add
           </Button>
           <Button
             variant="contained"
             startIcon={<RemoveIcon />}
-            sx={{ bgcolor: '#f44336', color: '#fff' }}
+            sx={{ bgcolor: "#f44336", color: "#fff" }}
           >
             Remove
           </Button>
           <Button
             variant="outlined"
             startIcon={<ExportIcon />}
-            sx={{ color: '#1976d2', borderColor: '#1976d2' }}
+            sx={{ color: "#1976d2", borderColor: "#1976d2" }}
           >
             Export
           </Button>
@@ -341,7 +357,10 @@ const Attendance = () => {
             <TableRow>
               <StyledTableCell padding="checkbox">
                 <Checkbox
-                  indeterminate={selected.length > 0 && selected.length < filteredParticipants.length}
+                  indeterminate={
+                    selected.length > 0 &&
+                    selected.length < filteredParticipants.length
+                  }
                   checked={selected.length === filteredParticipants.length}
                   onChange={handleSelectAll}
                 />
@@ -359,7 +378,7 @@ const Attendance = () => {
               <TableRow
                 key={row.id}
                 selected={selected.indexOf(row.id) !== -1}
-                sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
+                sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}
               >
                 <StyledTableCell padding="checkbox">
                   <Checkbox
@@ -368,13 +387,15 @@ const Attendance = () => {
                   />
                 </StyledTableCell>
                 <StyledTableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: '#1976d2' }}>{row.name.charAt(0)}</Avatar>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar sx={{ bgcolor: "#1976d2" }}>
+                      {row.name.charAt(0)}
+                    </Avatar>
                     {editingId === row.id ? (
                       <InputBase
                         value={editData.name || ""}
                         onChange={(e) => handleChange(e, "name")}
-                        sx={{ width: '100%' }}
+                        sx={{ width: "100%" }}
                       />
                     ) : (
                       row.name
@@ -386,7 +407,7 @@ const Attendance = () => {
                     <Select
                       value={editData.category || ""}
                       onChange={(e) => handleChange(e, "category")}
-                      sx={{ width: '100%' }}
+                      sx={{ width: "100%" }}
                     >
                       {categoryOptions.map((option) => (
                         <MenuItem key={option} value={option}>
@@ -404,16 +425,21 @@ const Attendance = () => {
                       value={editData.amountPaid || ""}
                       onChange={(e) => handleChange(e, "amountPaid")}
                       type="number"
-                      sx={{ width: '100%' }}
+                      sx={{ width: "100%" }}
                     />
+                  ) : row.amountPaid ? (
+                    `₦${row.amountPaid}`
                   ) : (
-                    row.amountPaid ? `₦${row.amountPaid}` : ""
+                    ""
                   )}
                 </StyledTableCell>
                 <StyledTableCell>
                   {editingId === row.id ? (
                     <>
-                      <IconButton aria-label="save" onClick={() => handleSave(row.id)}>
+                      <IconButton
+                        aria-label="save"
+                        onClick={() => handleSave(row.id)}
+                      >
                         <SaveIcon />
                       </IconButton>
                       <IconButton aria-label="cancel" onClick={handleCancel}>
@@ -421,13 +447,19 @@ const Attendance = () => {
                       </IconButton>
                     </>
                   ) : (
-                    <IconButton aria-label="edit" onClick={() => handleEdit(row.id)}>
+                    <IconButton
+                      aria-label="edit"
+                      onClick={() => handleEdit(row.id)}
+                    >
                       <EditIcon />
                     </IconButton>
                   )}
                 </StyledTableCell>
                 <StyledTableCell>
-                  <IconButton aria-label="delete" onClick={() => handleDelete(row.id)}>
+                  <IconButton
+                    aria-label="delete"
+                    onClick={() => handleDelete(row.id)}
+                  >
                     <CancelIcon />
                   </IconButton>
                 </StyledTableCell>
@@ -437,7 +469,7 @@ const Attendance = () => {
                     status={row.present ? "Invited" : "Absent"}
                     size="small"
                     onClick={() => togglePresent(row.id)}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{ cursor: "pointer" }}
                   />
                 </StyledTableCell>
               </TableRow>
@@ -454,10 +486,22 @@ const Attendance = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell style={{ fontWeight: "bold", color: "white", backgroundColor: "#1D1842" }}>
+              <TableCell
+                style={{
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "#1D1842",
+                }}
+              >
                 Category
               </TableCell>
-              <TableCell style={{ fontWeight: "bold", color: "white", backgroundColor: "#1D1842" }}>
+              <TableCell
+                style={{
+                  fontWeight: "bold",
+                  color: "white",
+                  backgroundColor: "#1D1842",
+                }}
+              >
                 Total Amount
               </TableCell>
             </TableRow>
@@ -472,7 +516,10 @@ const Attendance = () => {
             <TableRow>
               <TableCell style={{ fontWeight: "bold" }}>Total</TableCell>
               <TableCell style={{ fontWeight: "bold" }}>
-                ₦{Object.values(categoryTotals).reduce((sum, val) => sum + val, 0).toFixed(2)}
+                ₦
+                {Object.values(categoryTotals)
+                  .reduce((sum, val) => sum + val, 0)
+                  .toFixed(2)}
               </TableCell>
             </TableRow>
           </TableBody>
