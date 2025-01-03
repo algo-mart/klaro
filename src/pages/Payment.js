@@ -1,8 +1,15 @@
 import React, { useState } from "react";
-import "./Payment.css";
-import { TextField, MenuItem, Button } from "@mui/material";
+import {
+  TextField,
+  Button,
+  MenuItem,
+  Typography,
+  Alert,
+} from "@mui/material";
+import { useAuth } from "../context/AuthContext";
 
 const Payment = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     meetingDate: "",
     meetingType: "",
@@ -13,42 +20,107 @@ const Payment = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  const sanitizeNumber = (value) => {
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : Math.max(0, num);
+  };
 
   const validateForm = (values) => {
     const errors = {};
-    if (!values.meetingDate) errors.meetingDate = "Meeting Date is required";
-    if (!values.meetingType) errors.meetingType = "Meeting Type is required";
+    const currentDate = new Date();
+    const selectedDate = new Date(values.meetingDate);
+
+    // Date validation
+    if (!values.meetingDate) {
+      errors.meetingDate = "Meeting date is required";
+    } else if (selectedDate > currentDate) {
+      errors.meetingDate = "Meeting date cannot be in the future";
+    }
+
+    // Required fields
+    if (!values.meetingType) errors.meetingType = "Meeting type is required";
     if (!values.name) errors.name = "Name is required";
-    if (!values.amountPaidIntern || values.amountPaidIntern <= 0) {
+
+    // Amount validation with proper sanitization
+    const amountIntern = sanitizeNumber(values.amountPaidIntern);
+    const amountMember = sanitizeNumber(values.amountPaidMember);
+    const amountSenior = sanitizeNumber(values.amountPaidSenior);
+
+    if (amountIntern <= 0) {
       errors.amountPaidIntern = "Amount Paid by Intern must be positive";
     }
-    if (!values.amountPaidMember || values.amountPaidMember <= 0) {
+    if (amountMember <= 0) {
       errors.amountPaidMember = "Amount Paid by Member must be positive";
     }
-    if (!values.amountPaidSenior || values.amountPaidSenior <= 0) {
+    if (amountSenior <= 0) {
       errors.amountPaidSenior = "Amount Paid by Senior Staff must be positive";
     }
+
     return errors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Sanitize input based on field type
+    let sanitizedValue = value;
+    if (name.startsWith('amountPaid')) {
+      sanitizedValue = value.replace(/[^0-9.]/g, '');
+      if (sanitizedValue.split('.').length > 2) return; // Prevent multiple decimal points
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: sanitizedValue,
     }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitStatus(null);
     const validationErrors = validateForm(formData);
+    
     if (Object.keys(validationErrors).length === 0) {
       try {
-        console.log("Form submitted:", formData);
+        // Prepare sanitized data for submission
+        const sanitizedData = {
+          ...formData,
+          amountPaidIntern: sanitizeNumber(formData.amountPaidIntern),
+          amountPaidMember: sanitizeNumber(formData.amountPaidMember),
+          amountPaidSenior: sanitizeNumber(formData.amountPaidSenior),
+          submittedBy: user?.email || 'unknown',
+          submittedAt: new Date().toISOString(),
+        };
+
+        // In a real app, this would be an API call
+        console.log("Submitting payment:", sanitizedData);
+        setSubmitStatus({ type: 'success', message: 'Payment recorded successfully' });
+        
+        // Clear form after successful submission
+        setFormData({
+          meetingDate: "",
+          meetingType: "",
+          name: "",
+          amountPaidIntern: "",
+          amountPaidMember: "",
+          amountPaidSenior: "",
+        });
       } catch (error) {
-        setErrors({
-          submit:
-            error.message || "Failed to process payment. Please try again.",
+        console.error('Payment submission error:', error);
+        setSubmitStatus({ 
+          type: 'error',
+          message: 'Failed to process payment. Please try again.' 
         });
       }
     } else {
@@ -58,17 +130,24 @@ const Payment = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <form
-        onSubmit={handleSubmit}
-        style={{ maxWidth: "500px", margin: "0 auto", marginTop: "40px" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            marginBottom: "20px",
-          }}
-        >
+      <h1 style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        gap: "8px",
+        fontSize: "1.5rem",
+        fontWeight: "normal",
+        marginBottom: "40px"
+      }}>
+        <span style={{ fontSize: "1.2em" }}>📄</span>
+        Daily Payment Entry
+      </h1>
+
+      <form onSubmit={handleSubmit} style={{ maxWidth: "500px", margin: "0 auto" }}>
+        <div style={{ 
+          display: "flex", 
+          gap: "20px", 
+          marginBottom: "20px"
+        }}>
           <TextField
             fullWidth
             type="date"
@@ -79,7 +158,6 @@ const Payment = () => {
             InputLabelProps={{
               shrink: true,
             }}
-            required
             error={!!errors.meetingDate}
             helperText={errors.meetingDate}
             sx={{
@@ -102,10 +180,9 @@ const Payment = () => {
             fullWidth
             select
             name="meetingType"
-            label="Meeting type"
+            label="Meeting Type"
             value={formData.meetingType}
             onChange={handleChange}
-            required
             error={!!errors.meetingType}
             helperText={errors.meetingType}
             sx={{
@@ -124,9 +201,9 @@ const Payment = () => {
             }}
           >
             <MenuItem value="">--Please choose meeting type--</MenuItem>
-            <MenuItem value="type1">Type 1</MenuItem>
-            <MenuItem value="type2">Type 2</MenuItem>
-            <MenuItem value="type3">Type 3</MenuItem>
+            <MenuItem value="weekly">Weekly Meeting</MenuItem>
+            <MenuItem value="monthly">Monthly Meeting</MenuItem>
+            <MenuItem value="special">Special Meeting</MenuItem>
           </TextField>
         </div>
 
@@ -136,7 +213,6 @@ const Payment = () => {
           label="Name"
           value={formData.name}
           onChange={handleChange}
-          required
           error={!!errors.name}
           helperText={errors.name}
           sx={{
@@ -156,14 +232,17 @@ const Payment = () => {
           }}
         />
 
+        <Typography variant="subtitle1" sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}>
+          Amount Paid
+        </Typography>
+
         <TextField
           fullWidth
-          type="number"
           name="amountPaidIntern"
-          label="Amount Paid by Intern"
+          label="Intern"
+          type="number"
           value={formData.amountPaidIntern}
           onChange={handleChange}
-          required
           error={!!errors.amountPaidIntern}
           helperText={errors.amountPaidIntern}
           sx={{
@@ -185,12 +264,11 @@ const Payment = () => {
 
         <TextField
           fullWidth
-          type="number"
           name="amountPaidMember"
-          label="Amount Paid by Member"
+          label="Member"
+          type="number"
           value={formData.amountPaidMember}
           onChange={handleChange}
-          required
           error={!!errors.amountPaidMember}
           helperText={errors.amountPaidMember}
           sx={{
@@ -212,12 +290,11 @@ const Payment = () => {
 
         <TextField
           fullWidth
-          type="number"
           name="amountPaidSenior"
-          label="Amount Paid by Senior Staff"
+          label="Senior Staff"
+          type="number"
           value={formData.amountPaidSenior}
           onChange={handleChange}
-          required
           error={!!errors.amountPaidSenior}
           helperText={errors.amountPaidSenior}
           sx={{
@@ -254,6 +331,11 @@ const Payment = () => {
         >
           Submit
         </Button>
+        {submitStatus && (
+          <Alert severity={submitStatus.type} sx={{ mt: 2 }}>
+            {submitStatus.message}
+          </Alert>
+        )}
         {errors.submit && (
           <div style={{ color: "red", marginTop: 8 }}>{errors.submit}</div>
         )}

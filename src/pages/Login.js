@@ -16,11 +16,22 @@ const Login = () => {
     role: "user",
   });
 
+  const validateEmail = (email) => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(email);
+  };
+
+  const validatePassword = (password) => {
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return re.test(password);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: value.trim(),
     }));
     setError("");
   };
@@ -29,33 +40,37 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
+    // Input validation
+    if (!validateEmail(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!validatePassword(formData.password)) {
+      setError("Password must be at least 8 characters long and contain uppercase, lowercase, and numbers");
+      return;
+    }
+
     if (!isLogin && formData.password !== formData.confirmPassword) {
       setError("Passwords don't match!");
       return;
     }
 
     try {
-      if (isLogin) {
-        // Simulate login API call
-        const mockUser = {
-          email: formData.email,
-          role: "user", // In a real app, this would come from the backend
-        };
-        login(mockUser);
-        navigate("/dashboard");
-      } else {
-        // Simulate registration
-        const mockUser = {
-          fullName: formData.fullName,
-          email: formData.email,
-          role: formData.role,
-          registrationDate: new Date().toISOString(),
-        };
-        login(mockUser);
-        navigate("/dashboard");
-      }
+      // In a real app, this would be an API call with proper encryption
+      const mockUser = {
+        id: Math.random().toString(36).substr(2, 9),
+        email: formData.email,
+        role: formData.role,
+        fullName: formData.fullName,
+        lastLogin: new Date().toISOString()
+      };
+
+      login(mockUser);
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message || "An error occurred");
+      setError("Authentication failed. Please try again.");
+      console.error("Auth error:", err);
     }
   };
 
