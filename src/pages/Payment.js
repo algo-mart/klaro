@@ -1,109 +1,262 @@
 import React, { useState } from "react";
 import "./Payment.css";
-import { TextField, MenuItem } from "@mui/material";
+import { TextField, MenuItem, Button } from "@mui/material";
 
 const Payment = () => {
-  const [category, setCategory] = useState("");
-
-  // const handleChange = (event) => {
-  //   setCategory(event.target.value);
-  //   console.log(`Selected meeting type: ${event.target.value}`);
-  // };
-
   const [formData, setFormData] = useState({
+    meetingDate: "",
+    meetingType: "",
     name: "",
-    category: "",
     amountPaidIntern: "",
     amountPaidMember: "",
     amountPaidSenior: "",
   });
-  const [meetingDate, setMeetingDate] = useState("");
-  const [inputType, setInputType] = useState("text");
+
+  const [errors, setErrors] = useState({});
+
+  const validateForm = (values) => {
+    const errors = {};
+    if (!values.meetingDate) errors.meetingDate = "Meeting Date is required";
+    if (!values.meetingType) errors.meetingType = "Meeting Type is required";
+    if (!values.name) errors.name = "Name is required";
+    if (!values.amountPaidIntern || values.amountPaidIntern <= 0) {
+      errors.amountPaidIntern = "Amount Paid by Intern must be positive";
+    }
+    if (!values.amountPaidMember || values.amountPaidMember <= 0) {
+      errors.amountPaidMember = "Amount Paid by Member must be positive";
+    }
+    if (!values.amountPaidSenior || values.amountPaidSenior <= 0) {
+      errors.amountPaidSenior = "Amount Paid by Senior Staff must be positive";
+    }
+    return errors;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission, e.g., send data to server
-    console.log(formData);
+    const validationErrors = validateForm(formData);
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        console.log("Form submitted:", formData);
+      } catch (error) {
+        setErrors({
+          submit:
+            error.message || "Failed to process payment. Please try again.",
+        });
+      }
+    } else {
+      setErrors(validationErrors);
+    }
   };
 
   return (
-    <div className="form-container">
-      <form onSubmit={handleSubmit}>
-        <div className="date-select-meeting">
+    <div style={{ padding: "20px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ maxWidth: "500px", margin: "0 auto", marginTop: "40px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginBottom: "20px",
+          }}
+        >
           <TextField
-            type={inputType}
-            id="meetingDate"
-            label="Meeting Date"
-            value={meetingDate}
-            onChange={(e) => setMeetingDate(e.target.value)}
-            variant="outlined"
-            className="date-input"
-            onFocus={() => setInputType("date")}
-            onBlur={() => meetingDate === "" && setInputType("text")}
-            style={{ marginRight: "10px", width: "50%" }}
             fullWidth
+            type="date"
+            name="meetingDate"
+            label="Meeting Date"
+            value={formData.meetingDate}
+            onChange={handleChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
             required
+            error={!!errors.meetingDate}
+            helperText={errors.meetingDate}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  border: "none",
+                  borderBottom: "1px solid #e0e0e0",
+                },
+                "&:hover fieldset": {
+                  borderBottom: "1px solid #1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderBottom: "2px solid #1976d2",
+                },
+              },
+            }}
           />
 
           <TextField
-            select
-            label="Meeting type"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            variant="outlined"
             fullWidth
+            select
+            name="meetingType"
+            label="Meeting type"
+            value={formData.meetingType}
+            onChange={handleChange}
             required
-            style={{ marginRight: "10px", width: "50%" }}
+            error={!!errors.meetingType}
+            helperText={errors.meetingType}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  border: "none",
+                  borderBottom: "1px solid #e0e0e0",
+                },
+                "&:hover fieldset": {
+                  borderBottom: "1px solid #1976d2",
+                },
+                "&.Mui-focused fieldset": {
+                  borderBottom: "2px solid #1976d2",
+                },
+              },
+            }}
           >
-            <MenuItem value="">
-              <em>--Please choose meeting type--</em>
-            </MenuItem>
-            <MenuItem value="category1">Type 1</MenuItem>
-            <MenuItem value="category2">Type 2</MenuItem>
-            <MenuItem value="category3">Type 3</MenuItem>
+            <MenuItem value="">--Please choose meeting type--</MenuItem>
+            <MenuItem value="type1">Type 1</MenuItem>
+            <MenuItem value="type2">Type 2</MenuItem>
+            <MenuItem value="type3">Type 3</MenuItem>
           </TextField>
         </div>
 
-        <label htmlFor="amountPaidIntern">Amount Paid by Intern:</label>
-        <input
+        <TextField
+          fullWidth
+          name="name"
+          label="Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          error={!!errors.name}
+          helperText={errors.name}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
+        />
+
+        <TextField
+          fullWidth
           type="number"
-          id="amountPaidIntern"
           name="amountPaidIntern"
+          label="Amount Paid by Intern"
           value={formData.amountPaidIntern}
           onChange={handleChange}
           required
+          error={!!errors.amountPaidIntern}
+          helperText={errors.amountPaidIntern}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
         />
 
-        <label htmlFor="amountPaidMember">Amount Paid by Member:</label>
-        <input
+        <TextField
+          fullWidth
           type="number"
-          id="amountPaidMember"
           name="amountPaidMember"
+          label="Amount Paid by Member"
           value={formData.amountPaidMember}
           onChange={handleChange}
           required
+          error={!!errors.amountPaidMember}
+          helperText={errors.amountPaidMember}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
         />
 
-        <label htmlFor="amountPaidSeniorf">Amount Paid by Senior Staff:</label>
-
-        <input
+        <TextField
+          fullWidth
           type="number"
-          id="amountPaidSenior"
           name="amountPaidSenior"
+          label="Amount Paid by Senior Staff"
           value={formData.amountPaidSenior}
           onChange={handleChange}
           required
+          error={!!errors.amountPaidSenior}
+          helperText={errors.amountPaidSenior}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
         />
 
-        <button type="submit">Submit</button>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{
+            mt: 2,
+            backgroundColor: "#3b82f6",
+            textTransform: "none",
+            borderRadius: "8px",
+            padding: "10px",
+            "&:hover": {
+              backgroundColor: "#2563eb",
+            },
+          }}
+        >
+          Submit
+        </Button>
+        {errors.submit && (
+          <div style={{ color: "red", marginTop: 8 }}>{errors.submit}</div>
+        )}
       </form>
     </div>
   );

@@ -32,8 +32,13 @@ const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
   backgroundColor: "#fff",
   borderRadius: "12px",
   boxShadow: "none",
-  border: "none",
-  margin: "20px 0",
+  border: "1px solid #e0e0e0",
+  "& .MuiTableCell-root": {
+    borderRight: "1px solid #e0e0e0",
+    "&:last-child": {
+      borderRight: "none",
+    },
+  },
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -259,7 +264,7 @@ const Attendance = () => {
       setEditData({
         name: sanitizeInput(participant.name, "name"),
         category: participant.category,
-        amountPaid: sanitizeInput(participant.amountPaid, "amount")
+        amountPaid: sanitizeInput(participant.amountPaid, "amount"),
       });
     } catch (error) {
       console.error("Error editing participant:", error);
@@ -269,11 +274,14 @@ const Attendance = () => {
   const handleChange = (e, field) => {
     try {
       const value = e.target.value;
-      let sanitizedValue = sanitizeInput(value, field === "amountPaid" ? "amount" : field === "name" ? "name" : "");
-      
+      let sanitizedValue = sanitizeInput(
+        value,
+        field === "amountPaid" ? "amount" : field === "name" ? "name" : "",
+      );
+
       setEditData((prev) => ({
         ...prev,
-        [field]: sanitizedValue
+        [field]: sanitizedValue,
       }));
     } catch (error) {
       console.error("Error handling input change:", error);
@@ -282,28 +290,26 @@ const Attendance = () => {
 
   const handleSave = (id) => {
     try {
-      // Validate required fields
       if (!editData.name?.trim() || !editData.category) {
         console.error("Required fields missing");
         return;
       }
 
-      // Validate and sanitize data before saving
       const sanitizedData = {
         name: sanitizeInput(editData.name, "name"),
         category: editData.category,
-        amountPaid: sanitizeInput(editData.amountPaid, "amount")
+        amountPaid: sanitizeInput(editData.amountPaid, "amount"),
       };
-      
-      setParticipants((prev) => 
-        prev.map((p) => 
-          p.id === id 
-            ? { 
+
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? {
                 ...p,
-                ...sanitizedData
+                ...sanitizedData,
               }
-            : p
-        )
+            : p,
+        ),
       );
       setEditingId(null);
       setEditData({});
@@ -340,7 +346,8 @@ const Attendance = () => {
   const categoryTotals = useMemo(() => {
     try {
       return participants.reduce((acc, participant) => {
-        const amount = parseFloat(sanitizeInput(participant.amountPaid, "amount")) || 0;
+        const amount =
+          parseFloat(sanitizeInput(participant.amountPaid, "amount")) || 0;
         if (!acc[participant.category]) {
           acc[participant.category] = 0;
         }
@@ -387,9 +394,11 @@ const Attendance = () => {
             }}
           >
             <MenuItem value="">All Categories</MenuItem>
-            <MenuItem value="Senior Staff">Senior Staff</MenuItem>
-            <MenuItem value="Member">Member</MenuItem>
-            <MenuItem value="Intern">Intern</MenuItem>
+            {categoryOptions.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
           </Select>
 
           <Select
@@ -422,6 +431,7 @@ const Attendance = () => {
             variant="contained"
             startIcon={<RemoveIcon />}
             sx={{ bgcolor: "#f44336", color: "#fff" }}
+            disabled={selected.length === 0}
           >
             Remove
           </Button>
@@ -446,15 +456,17 @@ const Attendance = () => {
                     selected.length > 0 &&
                     selected.length < filteredParticipants.length
                   }
-                  checked={selected.length === filteredParticipants.length}
+                  checked={
+                    filteredParticipants.length > 0 &&
+                    selected.length === filteredParticipants.length
+                  }
                   onChange={handleSelectAll}
                 />
               </StyledTableCell>
               <StyledTableCell className="header">Name</StyledTableCell>
               <StyledTableCell className="header">Category</StyledTableCell>
               <StyledTableCell className="header">Amount Paid</StyledTableCell>
-              <StyledTableCell className="header">Edit</StyledTableCell>
-              <StyledTableCell className="header">Delete</StyledTableCell>
+              <StyledTableCell className="header">Actions</StyledTableCell>
               <StyledTableCell className="header">Status</StyledTableCell>
             </TableRow>
           </TableHead>
@@ -532,21 +544,21 @@ const Attendance = () => {
                       </IconButton>
                     </>
                   ) : (
-                    <IconButton
-                      aria-label="edit"
-                      onClick={() => handleEdit(row.id)}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                    <>
+                      <IconButton
+                        aria-label="edit"
+                        onClick={() => handleEdit(row.id)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => handleDelete(row.id)}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </>
                   )}
-                </StyledTableCell>
-                <StyledTableCell>
-                  <IconButton
-                    aria-label="delete"
-                    onClick={() => handleDelete(row.id)}
-                  >
-                    <CancelIcon />
-                  </IconButton>
                 </StyledTableCell>
                 <StyledTableCell>
                   <StatusChip
@@ -563,7 +575,7 @@ const Attendance = () => {
         </Table>
       </StyledTableContainer>
 
-      {/* Category Summary Section */}
+      {/* Category Summary */}
       <Box sx={{ mt: 4, p: 2, bgcolor: "#f8fafc", borderRadius: 2 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Category Summary
@@ -571,24 +583,8 @@ const Attendance = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell
-                style={{
-                  fontWeight: "bold",
-                  color: "white",
-                  backgroundColor: "#1D1842",
-                }}
-              >
-                Category
-              </TableCell>
-              <TableCell
-                style={{
-                  fontWeight: "bold",
-                  color: "white",
-                  backgroundColor: "#1D1842",
-                }}
-              >
-                Total Amount
-              </TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Total Amount</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -598,15 +594,6 @@ const Attendance = () => {
                 <TableCell>₦{total.toFixed(2)}</TableCell>
               </TableRow>
             ))}
-            <TableRow>
-              <TableCell style={{ fontWeight: "bold" }}>Total</TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>
-                ₦
-                {Object.values(categoryTotals)
-                  .reduce((sum, val) => sum + val, 0)
-                  .toFixed(2)}
-              </TableCell>
-            </TableRow>
           </TableBody>
         </Table>
       </Box>

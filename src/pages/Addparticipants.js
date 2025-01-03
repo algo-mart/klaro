@@ -1,229 +1,209 @@
 import React, { useState } from "react";
 import {
   TextField,
-  Box,
   Typography,
   Grid,
-  FormControlLabel,
   Radio,
   RadioGroup,
-  FormControl,
-  FormLabel,
-  styled,
+  FormControlLabel,
+  Button,
 } from "@mui/material";
-import axios from "axios";
 
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: "#fff",
-    "& fieldset": {
-      border: "none",
-      borderBottom: "1px solid #e0e0e0",
-    },
-    "&:hover fieldset": {
-      border: "none",
-      borderBottom: "1px solid #e0e0e0",
-    },
-    "&.Mui-focused fieldset": {
-      border: "none",
-      borderBottom: `2px solid ${theme.palette.primary.main}`,
-    },
-  },
-}));
-
-export default function Addparticipants() {
-  const [values, setValues] = useState({
-    name: "",
+const Addparticipants = () => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phoneNumber: "",
     email: "",
-    phone: "",
     address: "",
     category: "",
   });
 
-  const [submitted, setSubmitted] = useState(false);
-  const [valid, setValid] = useState(false);
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setValues((values) => ({
-      ...values,
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (
-      values.name &&
-      values.email &&
-      values.phone &&
-      values.address &&
-      values.category
-    ) {
-      setValid(true);
-      submitParticipant();
-    } else {
-      setValid(false);
-    }
-
-    setSubmitted(true);
-  };
-
-  const submitParticipant = () => {
-    const data = {
-      name: values.name,
-      category: values.category,
-      contact_info: {
-        email: values.email,
-        phone: values.phone,
-        address: values.address,
-      },
-    };
-
-    axios
-      .post("{{baseurl}}/participants", data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        console.log("Response data:", response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error submitting the form:", error);
-      });
+    console.log("Form submitted:", formData);
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto", marginTop: 5 }}>
-      <form onSubmit={handleSubmit}>
-        {submitted && valid && (
-          <Box sx={{ mb: 3, p: 2, bgcolor: "#e8f5e9", borderRadius: 1 }}>
-            <Typography variant="subtitle1" color="success.main">
-              Welcome {values.name}! Your registration was successful!
-            </Typography>
-          </Box>
-        )}
+    <div style={{ padding: "20px" }}>
+      <h1
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontSize: "1.5rem",
+          fontWeight: "normal",
+          marginBottom: "40px",
+        }}
+      >
+        <span style={{ fontSize: "1.2em" }}>📄</span>
+        Add New Participants
+      </h1>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <StyledTextField
-              fullWidth
-              label="Full Name"
-              name="name"
-              value={values.name}
-              onChange={handleInputChange}
-              error={submitted && !values.name}
-              helperText={
-                submitted && !values.name ? "Please enter a full name" : ""
-              }
-              required
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <StyledTextField
-              fullWidth
-              type="tel"
-              label="Phone Number"
-              name="phone"
-              value={values.phone}
-              onChange={handleInputChange}
-              error={submitted && !values.phone}
-              helperText={
-                submitted && !values.phone ? "Please enter a phone number" : ""
-              }
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <StyledTextField
-              fullWidth
-              type="email"
-              label="Email"
-              name="email"
-              value={values.email}
-              onChange={handleInputChange}
-              error={submitted && !values.email}
-              helperText={
-                submitted && !values.email
-                  ? "Please enter an email address"
-                  : ""
-              }
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <StyledTextField
-              fullWidth
-              label="Address"
-              name="address"
-              value={values.address}
-              onChange={handleInputChange}
-              error={submitted && !values.address}
-              helperText={
-                submitted && !values.address ? "Please enter an address" : ""
-              }
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <FormControl error={submitted && !values.category} required>
-              <FormLabel>Category</FormLabel>
-              <RadioGroup
-                row
-                name="category"
-                value={values.category}
-                onChange={handleInputChange}
-              >
-                <FormControlLabel
-                  value="intern"
-                  control={<Radio />}
-                  label="Intern"
-                />
-                <FormControlLabel
-                  value="member"
-                  control={<Radio />}
-                  label="Member"
-                />
-                <FormControlLabel
-                  value="Senior Staff"
-                  control={<Radio />}
-                  label="Senior Staff"
-                />
-              </RadioGroup>
-              {submitted && !values.category && (
-                <Typography variant="caption" color="error">
-                  Please select a category
-                </Typography>
-              )}
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sx={{ textAlign: "right", mt: 2 }}>
-            <button
-              type="submit"
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#1976d2",
-                color: "white",
+      <form
+        onSubmit={handleSubmit}
+        style={{ maxWidth: "500px", margin: "0 auto" }}
+      >
+        <TextField
+          fullWidth
+          name="fullName"
+          label="Full Name"
+          value={formData.fullName}
+          onChange={handleChange}
+          required
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
                 border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                "&:hover": {
-                  backgroundColor: "#1565c0",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
+        />
+
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              name="phoneNumber"
+              label="Phone Number"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                    borderBottom: "1px solid #e0e0e0",
+                  },
+                  "&:hover fieldset": {
+                    borderBottom: "1px solid #1976d2",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderBottom: "2px solid #1976d2",
+                  },
                 },
               }}
-            >
-              Submit
-            </button>
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              name="email"
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                    borderBottom: "1px solid #e0e0e0",
+                  },
+                  "&:hover fieldset": {
+                    borderBottom: "1px solid #1976d2",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderBottom: "2px solid #1976d2",
+                  },
+                },
+              }}
+            />
           </Grid>
         </Grid>
+
+        <TextField
+          fullWidth
+          name="address"
+          label="Address"
+          value={formData.address}
+          onChange={handleChange}
+          required
+          multiline
+          rows={2}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
+        />
+
+        <Typography
+          variant="body1"
+          sx={{
+            mb: 1,
+            color: "rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          Category
+        </Typography>
+
+        <RadioGroup
+          row
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          sx={{
+            mb: 3,
+            justifyContent: "space-between",
+            "& .MuiFormControlLabel-root": {
+              margin: 0,
+            },
+          }}
+        >
+          <FormControlLabel
+            value="senior"
+            control={<Radio />}
+            label="Senior Staff"
+          />
+          <FormControlLabel value="member" control={<Radio />} label="Member" />
+          <FormControlLabel value="intern" control={<Radio />} label="Intern" />
+        </RadioGroup>
+
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{
+            backgroundColor: "#3b82f6",
+            textTransform: "none",
+            borderRadius: "8px",
+            padding: "10px",
+            "&:hover": {
+              backgroundColor: "#2563eb",
+            },
+          }}
+        >
+          ADD PARTICIPANT
+        </Button>
       </form>
-    </Box>
+    </div>
   );
-}
+};
+
+export default Addparticipants;
