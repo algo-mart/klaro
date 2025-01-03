@@ -3,6 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
+// Fallback function for browsers that don't support crypto.randomUUID()
+const generateSecureId = () => {
+  if (window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  // Fallback to a more secure random string generation
+  const array = new Uint8Array(16);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -47,7 +61,9 @@ const Login = () => {
     }
 
     if (!validatePassword(formData.password)) {
-      setError("Password must be at least 8 characters long and contain uppercase, lowercase, and numbers");
+      setError(
+        "Password must be at least 8 characters long and contain uppercase, lowercase, and numbers",
+      );
       return;
     }
 
@@ -59,11 +75,11 @@ const Login = () => {
     try {
       // In a real app, this would be an API call with proper encryption
       const mockUser = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: generateSecureId(), // Using secure ID generation
         email: formData.email,
         role: formData.role,
         fullName: formData.fullName,
-        lastLogin: new Date().toISOString()
+        lastLogin: new Date().toISOString(),
       };
 
       login(mockUser);

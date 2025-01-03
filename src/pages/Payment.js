@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  TextField,
-  Button,
-  MenuItem,
-  Typography,
-  Alert,
-} from "@mui/material";
+import { TextField, Button, MenuItem, Typography, Alert } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 
 const Payment = () => {
@@ -63,22 +57,22 @@ const Payment = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Sanitize input based on field type
     let sanitizedValue = value;
-    if (name.startsWith('amountPaid')) {
-      sanitizedValue = value.replace(/[^0-9.]/g, '');
-      if (sanitizedValue.split('.').length > 2) return; // Prevent multiple decimal points
+    if (name.startsWith("amountPaid")) {
+      sanitizedValue = value.replace(/[^0-9.]/g, "");
+      if (sanitizedValue.split(".").length > 2) return; // Prevent multiple decimal points
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: sanitizedValue,
     }));
-    
+
     // Clear error for this field
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -90,7 +84,7 @@ const Payment = () => {
     e.preventDefault();
     setSubmitStatus(null);
     const validationErrors = validateForm(formData);
-    
+
     if (Object.keys(validationErrors).length === 0) {
       try {
         // Prepare sanitized data for submission
@@ -99,14 +93,17 @@ const Payment = () => {
           amountPaidIntern: sanitizeNumber(formData.amountPaidIntern),
           amountPaidMember: sanitizeNumber(formData.amountPaidMember),
           amountPaidSenior: sanitizeNumber(formData.amountPaidSenior),
-          submittedBy: user?.email || 'unknown',
+          submittedBy: user?.email || "unknown",
           submittedAt: new Date().toISOString(),
         };
 
         // In a real app, this would be an API call
         console.log("Submitting payment:", sanitizedData);
-        setSubmitStatus({ type: 'success', message: 'Payment recorded successfully' });
-        
+        setSubmitStatus({
+          type: "success",
+          message: "Payment recorded successfully",
+        });
+
         // Clear form after successful submission
         setFormData({
           meetingDate: "",
@@ -117,10 +114,10 @@ const Payment = () => {
           amountPaidSenior: "",
         });
       } catch (error) {
-        console.error('Payment submission error:', error);
-        setSubmitStatus({ 
-          type: 'error',
-          message: 'Failed to process payment. Please try again.' 
+        console.error("Payment submission error:", error);
+        setSubmitStatus({
+          type: "error",
+          message: "Failed to process payment. Please try again.",
         });
       }
     } else {
@@ -130,24 +127,31 @@ const Payment = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1 style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        gap: "8px",
-        fontSize: "1.5rem",
-        fontWeight: "normal",
-        marginBottom: "40px"
-      }}>
+      <h1
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontSize: "1.5rem",
+          fontWeight: "normal",
+          marginBottom: "40px",
+        }}
+      >
         <span style={{ fontSize: "1.2em" }}>📄</span>
         Daily Payment Entry
       </h1>
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: "500px", margin: "0 auto" }}>
-        <div style={{ 
-          display: "flex", 
-          gap: "20px", 
-          marginBottom: "20px"
-        }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ maxWidth: "500px", margin: "0 auto" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            marginBottom: "20px",
+          }}
+        >
           <TextField
             fullWidth
             type="date"
@@ -232,7 +236,10 @@ const Payment = () => {
           }}
         />
 
-        <Typography variant="subtitle1" sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}
+        >
           Amount Paid
         </Typography>
 

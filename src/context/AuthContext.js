@@ -31,13 +31,13 @@ export const AuthProvider = ({ children }) => {
       id: userData.id,
       email: userData.email,
       role: userData.role,
-      fullName: userData.fullName
+      fullName: userData.fullName,
     };
 
     // Create session with 24-hour expiry
     const session = {
       user: sanitizedUser,
-      expiresAt: Date.now() + (24 * 60 * 60 * 1000)
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
     };
 
     setUser(sanitizedUser);
