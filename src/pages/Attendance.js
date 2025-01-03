@@ -166,6 +166,20 @@ const Attendance = () => {
 
   const categoryOptions = ["Intern", "Member", "Senior Staff"];
 
+  // Sanitize and validate input
+  const sanitizeInput = (value, type) => {
+    if (!value) return "";
+    switch (type) {
+      case "name":
+        return value.replace(/[<>]/g, "").trim();
+      case "amount":
+        const num = parseFloat(value);
+        return !isNaN(num) && num >= 0 ? num.toString() : "0";
+      default:
+        return value;
+    }
+  };
+
   // Filter participants based on search query and filters
   const filteredParticipants = useMemo(() => {
     return participants.filter((participant) => {
@@ -206,7 +220,7 @@ const Attendance = () => {
       }
       setSelected([]);
     } catch (error) {
-      console.error('Error selecting all:', error);
+      console.error("Error selecting all:", error);
     }
   };
 
@@ -224,49 +238,69 @@ const Attendance = () => {
       } else if (selectedIndex > 0) {
         newSelected = newSelected.concat(
           selected.slice(0, selectedIndex),
-          selected.slice(selectedIndex + 1)
+          selected.slice(selectedIndex + 1),
         );
       }
 
       setSelected(newSelected);
     } catch (error) {
-      console.error('Error selecting participant:', error);
+      console.error("Error selecting participant:", error);
     }
   };
 
   const handleEdit = (id) => {
-    setEditingId(id);
-    const participant = participants.find((p) => p.id === id);
-    setEditData({ ...participant });
+    try {
+      const participant = participants.find((p) => p.id === id);
+      if (!participant) {
+        console.error("Participant not found");
+        return;
+      }
+      setEditingId(id);
+      setEditData({
+        name: sanitizeInput(participant.name, "name"),
+        category: participant.category,
+        amountPaid: sanitizeInput(participant.amountPaid, "amount")
+      });
+    } catch (error) {
+      console.error("Error editing participant:", error);
+    }
   };
 
   const handleChange = (e, field) => {
-    if (field === 'amountPaid') {
-      // Validate amount is a positive number
+    try {
       const value = e.target.value;
-      if (value && (!Number(value) || Number(value) < 0)) {
-        return;
-      }
+      let sanitizedValue = sanitizeInput(value, field === "amountPaid" ? "amount" : field === "name" ? "name" : "");
+      
+      setEditData((prev) => ({
+        ...prev,
+        [field]: sanitizedValue
+      }));
+    } catch (error) {
+      console.error("Error handling input change:", error);
     }
-    setEditData((prev) => ({
-      ...prev,
-      [field]: e.target.value
-    }));
   };
 
   const handleSave = (id) => {
     try {
-      if (!editData.name?.trim()) {
+      // Validate required fields
+      if (!editData.name?.trim() || !editData.category) {
+        console.error("Required fields missing");
         return;
       }
+
+      // Validate and sanitize data before saving
+      const sanitizedData = {
+        name: sanitizeInput(editData.name, "name"),
+        category: editData.category,
+        amountPaid: sanitizeInput(editData.amountPaid, "amount")
+      };
       
       setParticipants((prev) => 
         prev.map((p) => 
           p.id === id 
             ? { 
-                ...p, 
-                ...editData,
-                amountPaid: editData.amountPaid || p.amountPaid
+                ...p,
+                ...sanitizedData
               }
             : p
         )
@@ -274,7 +308,7 @@ const Attendance = () => {
       setEditingId(null);
       setEditData({});
     } catch (error) {
-      console.error('Error saving participant:', error);
+      console.error("Error saving participant:", error);
       setEditingId(null);
       setEditData({});
     }
@@ -289,27 +323,35 @@ const Attendance = () => {
     try {
       setParticipants((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
-      console.error('Error deleting participant:', error);
+      console.error("Error deleting participant:", error);
     }
   };
 
   const togglePresent = (id) => {
     try {
       setParticipants((prev) =>
-        prev.map((p) =>
-          p.id === id ? { ...p, present: !p.present } : p
-        )
+        prev.map((p) => (p.id === id ? { ...p, present: !p.present } : p)),
       );
     } catch (error) {
-      console.error('Error toggling presence:', error);
+      console.error("Error toggling presence:", error);
     }
   };
 
-  const categoryTotals = participants.reduce((acc, participant) => {
-    const amount = parseFloat(participant.amountPaid) || 0;
-    acc[participant.category] = (acc[participant.category] || 0) + amount;
-    return acc;
-  }, {});
+  const categoryTotals = useMemo(() => {
+    try {
+      return participants.reduce((acc, participant) => {
+        const amount = parseFloat(sanitizeInput(participant.amountPaid, "amount")) || 0;
+        if (!acc[participant.category]) {
+          acc[participant.category] = 0;
+        }
+        acc[participant.category] += amount;
+        return acc;
+      }, {});
+    } catch (error) {
+      console.error("Error calculating totals:", error);
+      return {};
+    }
+  }, [participants]);
 
   return (
     <Box sx={{ p: 3 }}>
