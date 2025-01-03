@@ -198,31 +198,40 @@ const Attendance = () => {
   };
 
   const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelected(filteredParticipants.map((item) => item.id));
-    } else {
+    try {
+      if (event.target.checked) {
+        const newSelected = filteredParticipants.map((n) => n.id);
+        setSelected(newSelected);
+        return;
+      }
       setSelected([]);
+    } catch (error) {
+      console.error('Error selecting all:', error);
     }
   };
 
   const handleSelect = (id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
+    try {
+      const selectedIndex = selected.indexOf(id);
+      let newSelected = [];
 
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
+      if (selectedIndex === -1) {
+        newSelected = newSelected.concat(selected, id);
+      } else if (selectedIndex === 0) {
+        newSelected = newSelected.concat(selected.slice(1));
+      } else if (selectedIndex === selected.length - 1) {
+        newSelected = newSelected.concat(selected.slice(0, -1));
+      } else if (selectedIndex > 0) {
+        newSelected = newSelected.concat(
+          selected.slice(0, selectedIndex),
+          selected.slice(selectedIndex + 1)
+        );
+      }
+
+      setSelected(newSelected);
+    } catch (error) {
+      console.error('Error selecting participant:', error);
     }
-
-    setSelected(newSelected);
   };
 
   const handleEdit = (id) => {
@@ -231,14 +240,44 @@ const Attendance = () => {
     setEditData({ ...participant });
   };
 
+  const handleChange = (e, field) => {
+    if (field === 'amountPaid') {
+      // Validate amount is a positive number
+      const value = e.target.value;
+      if (value && (!Number(value) || Number(value) < 0)) {
+        return;
+      }
+    }
+    setEditData((prev) => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
   const handleSave = (id) => {
-    setParticipants(
-      participants.map((participant) =>
-        participant.id === id ? { ...participant, ...editData } : participant,
-      ),
-    );
-    setEditingId(null);
-    setEditData({});
+    try {
+      if (!editData.name?.trim()) {
+        return;
+      }
+      
+      setParticipants((prev) => 
+        prev.map((p) => 
+          p.id === id 
+            ? { 
+                ...p, 
+                ...editData,
+                amountPaid: editData.amountPaid || p.amountPaid
+              }
+            : p
+        )
+      );
+      setEditingId(null);
+      setEditData({});
+    } catch (error) {
+      console.error('Error saving participant:', error);
+      setEditingId(null);
+      setEditData({});
+    }
   };
 
   const handleCancel = () => {
@@ -246,20 +285,24 @@ const Attendance = () => {
     setEditData({});
   };
 
-  const handleChange = (e, field) => {
-    setEditData({ ...editData, [field]: e.target.value });
-  };
-
   const handleDelete = (id) => {
-    setParticipants(participants.filter((p) => p.id !== id));
+    try {
+      setParticipants((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error('Error deleting participant:', error);
+    }
   };
 
   const togglePresent = (id) => {
-    setParticipants(
-      participants.map((p) =>
-        p.id === id ? { ...p, present: !p.present } : p,
-      ),
-    );
+    try {
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, present: !p.present } : p
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling presence:', error);
+    }
   };
 
   const categoryTotals = participants.reduce((acc, participant) => {
