@@ -1,175 +1,209 @@
-import "./Addparticipants.css";
 import React, { useState } from "react";
+import {
+  TextField,
+  Typography,
+  Grid,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+} from "@mui/material";
 
-export default function Addparticipants() {
-  const [values, setValues] = useState({
-    firstName: "",
-    lastName: "",
+const Addparticipants = () => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phoneNumber: "",
     email: "",
+    address: "",
+    category: "",
   });
 
-  const handleInputChange = (event) => {
-    /* event.persist(); NO LONGER USED IN v.17*/
-    event.preventDefault();
-
-    const { name, value } = event.target;
-    setValues((values) => ({
-      ...values,
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  const [submitted, setSubmitted] = useState(false);
-  const [valid, setValid] = useState(false);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (
-      values.firstName &&
-      values.lastName &&
-      values.email &&
-      values.phone &&
-      values.category
-    ) {
-      setValid(true);
-    }
-    setSubmitted(true);
+    console.log("Form submitted:", formData);
   };
 
-  console.log(values);
-
   return (
-    <div className="form-container">
-      <form className="register-form" onSubmit={handleSubmit}>
-        {submitted && valid && (
-          <div className="success-message">
-            <h3>
-              {" "}
-              Welcome {values.firstName} {values.lastName}{" "}
-            </h3>
-            <div> Your registration was successful! </div>
-          </div>
-        )}
+    <div style={{ padding: "20px" }}>
+      <h1
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          fontSize: "1.5rem",
+          fontWeight: "normal",
+          marginBottom: "40px",
+        }}
+      >
+        <span style={{ fontSize: "1.2em" }}>📄</span>
+        Add New Participants
+      </h1>
 
-        <div className="display-flex">
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field mr"
-                type="text"
-                placeholder="First Name"
-                name="firstName"
-                value={values.firstName}
-                onChange={handleInputChange}
-              />
-            )}
+      <form
+        onSubmit={handleSubmit}
+        style={{ maxWidth: "500px", margin: "0 auto" }}
+      >
+        <TextField
+          fullWidth
+          name="fullName"
+          label="Full Name"
+          value={formData.fullName}
+          onChange={handleChange}
+          required
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
+        />
 
-            {submitted && !values.firstName && (
-              <span id="first-name-error">Please enter a first name</span>
-            )}
-          </div>
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field"
-                type="text"
-                placeholder="Last Name"
-                name="lastName"
-                value={values.lastName}
-                onChange={handleInputChange}
-              />
-            )}
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              name="phoneNumber"
+              label="Phone Number"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                    borderBottom: "1px solid #e0e0e0",
+                  },
+                  "&:hover fieldset": {
+                    borderBottom: "1px solid #1976d2",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderBottom: "2px solid #1976d2",
+                  },
+                },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              name="email"
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    border: "none",
+                    borderBottom: "1px solid #e0e0e0",
+                  },
+                  "&:hover fieldset": {
+                    borderBottom: "1px solid #1976d2",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderBottom: "2px solid #1976d2",
+                  },
+                },
+              }}
+            />
+          </Grid>
+        </Grid>
 
-            {submitted && !values.lastName && (
-              <span id="last-name-error">Please enter a last name</span>
-            )}
-          </div>
-        </div>
+        <TextField
+          fullWidth
+          name="address"
+          label="Address"
+          value={formData.address}
+          onChange={handleChange}
+          required
+          multiline
+          rows={2}
+          sx={{
+            marginBottom: "20px",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                border: "none",
+                borderBottom: "1px solid #e0e0e0",
+              },
+              "&:hover fieldset": {
+                borderBottom: "1px solid #1976d2",
+              },
+              "&.Mui-focused fieldset": {
+                borderBottom: "2px solid #1976d2",
+              },
+            },
+          }}
+        />
 
-        <div className="display-flex">
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field mr"
-                type="number"
-                placeholder="Phone Number"
-                name="phone"
-                value={values.phone}
-                onChange={handleInputChange}
-              />
-            )}
+        <Typography
+          variant="body1"
+          sx={{
+            mb: 1,
+            color: "rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          Category
+        </Typography>
 
-            {submitted && !values.phone && (
-              <span id="phone-number-error">Please enter a phone number</span>
-            )}
-          </div>
-          <div className="display-flex-col">
-            {!valid && (
-              <input
-                class="form-field"
-                type="email"
-                placeholder="Email"
-                name="email"
-                value={values.email}
-                onChange={handleInputChange}
-              />
-            )}
+        <RadioGroup
+          row
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          sx={{
+            mb: 3,
+            justifyContent: "space-between",
+            "& .MuiFormControlLabel-root": {
+              margin: 0,
+            },
+          }}
+        >
+          <FormControlLabel
+            value="senior"
+            control={<Radio />}
+            label="Senior Staff"
+          />
+          <FormControlLabel value="member" control={<Radio />} label="Member" />
+          <FormControlLabel value="intern" control={<Radio />} label="Intern" />
+        </RadioGroup>
 
-            {submitted && !values.email && (
-              <span id="email-error">Please enter an email address</span>
-            )}
-          </div>
-        </div>
-        <div className="display-flex-col">
-          <div className="display-flex justify-between">
-            <div className="display-flex">
-              <input
-                class="form-field mr"
-                type="checkbox"
-                placeholder="Intern"
-                name="category"
-                checked={values.category === "intern" ? true : false}
-                value={"intern"}
-                onChange={handleInputChange}
-              />
-              <p>Intern</p>
-            </div>
-            <div className="display-flex">
-              <input
-                class="form-field mr"
-                type="checkbox"
-                placeholder="Intern"
-                checked={values.category === "member"}
-                name="category"
-                value={"member"}
-                onChange={handleInputChange}
-              />
-              <p>Member</p>
-            </div>
-            <div className="display-flex">
-              <input
-                class="form-field mr"
-                type="checkbox"
-                placeholder="Intern"
-                checked={values.category === "Senior Staff"}
-                name="category"
-                value={"Senior Staff"}
-                onChange={handleInputChange}
-              />
-              <p>Senior Staff</p>
-            </div>
-          </div>
-          {submitted && !values.category && (
-            <span id="email-error">Please select a category</span>
-          )}
-        </div>
-
-        {!valid && (
-          <button class="form-field " type="submit">
-            Add Participant
-          </button>
-        )}
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{
+            backgroundColor: "#3b82f6",
+            textTransform: "none",
+            borderRadius: "8px",
+            padding: "10px",
+            "&:hover": {
+              backgroundColor: "#2563eb",
+            },
+          }}
+        >
+          ADD PARTICIPANT
+        </Button>
       </form>
     </div>
   );
-}
+};
+
+export default Addparticipants;
