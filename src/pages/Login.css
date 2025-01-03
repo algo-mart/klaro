@@ -75,12 +75,24 @@
 }
 
 .toggle-link {
-  color: var(--primary);
+  color: #1976d2;
   cursor: pointer;
-  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
   text-decoration: underline;
+  margin-left: 4px;
 }
 
-.toggle-link:hover {
-  color: var(--primary-dark);
+.toggle-link:hover,
+.toggle-link:focus {
+  color: #0f4c8a;
+  outline: none;
+}
+
+.toggle-link:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+  border-radius: 2px;
 }

@@ -147,9 +147,17 @@ function AppContent() {
           </button>
 
           {/* Mobile Overlay */}
-          <div
+          <button
             className={`mobile-overlay ${isMobileMenuOpen ? "open" : ""}`}
             onClick={handleOverlayClick}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                handleOverlayClick();
+              }
+            }}
+            aria-label="Close menu"
+            aria-expanded={isMobileMenuOpen}
+            type="button"
           />
 
           {/* Sidebar */}

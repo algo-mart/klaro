@@ -171,9 +171,22 @@ const Login = () => {
         </form>
         <p className="toggle-text">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <span onClick={toggleMode} className="toggle-link">
+          <button
+            type="button"
+            onClick={toggleMode}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleMode();
+              }
+            }}
+            className="toggle-link"
+            aria-label={
+              isLogin ? "Switch to registration form" : "Switch to login form"
+            }
+          >
             {isLogin ? "Register" : "Login"}
-          </span>
+          </button>
         </p>
       </div>
     </div>
