@@ -100,13 +100,12 @@ body {
 }
 
 .nav-link.logout-button {
-  margin-top: auto;
   background: none;
   border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
-  margin-top: 2rem;
+  margin-top: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;
 }
