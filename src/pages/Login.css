@@ -1,24 +1,33 @@
 .auth-container {
   min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--background);
-  padding: var(--spacing-md);
+  background-color: #1a2233;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
 }
 
 .auth-box {
-  background-color: var(--surface);
+  background-color: #ffffff;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 400px;
   padding: var(--spacing-xl);
+  margin: 0;
 }
 
 .auth-box h2 {
   text-align: center;
-  color: var(--text-primary);
+  color: #1a2233; /* Dark blue text to match theme */
   margin-bottom: var(--spacing-xl);
   font-size: 1.875rem;
   font-weight: 600;
@@ -32,23 +41,22 @@
 .form-group select {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-md);
   font-size: 1rem;
-  color: var(--text-primary);
-  background-color: var(--surface);
+  color: #1a2233;
+  background-color: #ffffff;
   transition: border-color 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
 }
 
 .form-group input::placeholder {
-  color: var(--text-secondary);
+  color: #757575;
 }
 
 .submit-btn {

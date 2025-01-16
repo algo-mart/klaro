@@ -15,6 +15,7 @@ import "./styles/layout.css";
 import { MdDashboard, MdPayment, MdAdd, MdLogout } from "react-icons/md";
 import { BiCalendarCheck } from "react-icons/bi";
 import { IoStatsChartSharp } from "react-icons/io5";
+import { BsCalendarEvent } from "react-icons/bs";
 
 // Import components
 import Navbar from "./components/Navbar/Navbar";
@@ -23,10 +24,10 @@ import Navbar from "./components/Navbar/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
 import Payment from "./pages/Payment";
-import Signin from "./pages/Signin";
 import Monthly from "./pages/Monthly";
 import Addparticipants from "./pages/Addparticipants";
 import Login from "./pages/Login";
+import Events from "./pages/Events";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -53,12 +54,12 @@ const PageTitle = () => {
         return "Meeting Attendance";
       case "/payment":
         return "Daily Payment Entry";
-      case "/signin":
-        return "Sign In";
       case "/monthly":
         return "Monthly Review";
       case "/addparticipants":
         return "Add New Participants";
+      case "/events":
+        return "Events";
       default:
         return "";
     }
@@ -125,6 +126,11 @@ function AppContent() {
       path: "/monthly",
       name: "Monthly Review",
       icon: <IoStatsChartSharp size={24} />,
+    },
+    {
+      path: "/events",
+      name: "Events",
+      icon: <BsCalendarEvent size={24} />,
     },
     {
       path: "/addparticipants",
@@ -229,18 +235,18 @@ function AppContent() {
               }
             />
             <Route
-              path="/signin"
-              element={
-                <ProtectedRoute>
-                  <Signin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/monthly"
               element={
                 <ProtectedRoute>
                   <Monthly />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <Events />
                 </ProtectedRoute>
               }
             />

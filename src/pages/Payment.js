@@ -1,353 +1,227 @@
 import React, { useState } from "react";
-import { TextField, Button, MenuItem, Typography, Alert } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
+import {
+  TextField,
+  Button,
+  Grid,
+  Typography,
+  Box,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const Payment = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    meetingDate: "",
-    meetingType: "",
-    name: "",
-    amountPaidIntern: "",
-    amountPaidMember: "",
-    amountPaidSenior: "",
+    fullName: "",
+    category: "",
+    amountPaid: "",
+    paymentDate: "",
+    paymentMethod: "",
+    transactionId: "",
+    description: "",
   });
-
-  const [errors, setErrors] = useState({});
-  const [submitStatus, setSubmitStatus] = useState(null);
-
-  const sanitizeNumber = (value) => {
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : Math.max(0, num);
-  };
-
-  const validateForm = (values) => {
-    const errors = {};
-    const currentDate = new Date();
-    const selectedDate = new Date(values.meetingDate);
-
-    // Date validation
-    if (!values.meetingDate) {
-      errors.meetingDate = "Meeting date is required";
-    } else if (selectedDate > currentDate) {
-      errors.meetingDate = "Meeting date cannot be in the future";
-    }
-
-    // Required fields
-    if (!values.meetingType) errors.meetingType = "Meeting type is required";
-    if (!values.name) errors.name = "Name is required";
-
-    // Amount validation with proper sanitization
-    const amountIntern = sanitizeNumber(values.amountPaidIntern);
-    const amountMember = sanitizeNumber(values.amountPaidMember);
-    const amountSenior = sanitizeNumber(values.amountPaidSenior);
-
-    if (amountIntern <= 0) {
-      errors.amountPaidIntern = "Amount Paid by Intern must be positive";
-    }
-    if (amountMember <= 0) {
-      errors.amountPaidMember = "Amount Paid by Member must be positive";
-    }
-    if (amountSenior <= 0) {
-      errors.amountPaidSenior = "Amount Paid by Senior Staff must be positive";
-    }
-
-    return errors;
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Sanitize input based on field type
-    let sanitizedValue = value;
-    if (name.startsWith("amountPaid")) {
-      sanitizedValue = value.replace(/[^0-9.]/g, "");
-      if (sanitizedValue.split(".").length > 2) return; // Prevent multiple decimal points
-    }
-
     setFormData((prev) => ({
       ...prev,
-      [name]: sanitizedValue,
+      [name]: value,
     }));
-
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitStatus(null);
-    const validationErrors = validateForm(formData);
-
-    if (Object.keys(validationErrors).length === 0) {
-      try {
-        // Prepare sanitized data for submission
-        const sanitizedData = {
-          ...formData,
-          amountPaidIntern: sanitizeNumber(formData.amountPaidIntern),
-          amountPaidMember: sanitizeNumber(formData.amountPaidMember),
-          amountPaidSenior: sanitizeNumber(formData.amountPaidSenior),
-          submittedBy: user?.email || "unknown",
-          submittedAt: new Date().toISOString(),
-        };
-
-        // In a real app, this would be an API call
-        console.log("Submitting payment:", sanitizedData);
-        setSubmitStatus({
-          type: "success",
-          message: "Payment recorded successfully",
-        });
-
-        // Clear form after successful submission
-        setFormData({
-          meetingDate: "",
-          meetingType: "",
-          name: "",
-          amountPaidIntern: "",
-          amountPaidMember: "",
-          amountPaidSenior: "",
-        });
-      } catch (error) {
-        console.error("Payment submission error:", error);
-        setSubmitStatus({
-          type: "error",
-          message: "Failed to process payment. Please try again.",
-        });
-      }
-    } else {
-      setErrors(validationErrors);
-    }
+    // Here you would typically send the data to your backend
+    console.log("Form submitted:", formData);
+    // Navigate back to dashboard after submission
+    navigate("/dashboard");
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          fontSize: "1.5rem",
-          fontWeight: "normal",
-          marginBottom: "40px",
+    <Box
+      sx={{
+        padding: "20px",
+        backgroundColor: "#f5f7fa",
+        minHeight: "calc(100vh - 64px)",
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          maxWidth: "600px",
+          margin: "0 auto",
+          padding: "32px",
+          borderRadius: "12px",
+          border: "1px solid #e0e0e0",
         }}
       >
-        <span style={{ fontSize: "1.2em" }}>📄</span>
-        Daily Payment Entry
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{ maxWidth: "500px", margin: "0 auto" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: "20px",
-            marginBottom: "20px",
-          }}
-        >
-          <TextField
-            fullWidth
-            type="date"
-            name="meetingDate"
-            label="Meeting Date"
-            value={formData.meetingDate}
-            onChange={handleChange}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            error={!!errors.meetingDate}
-            helperText={errors.meetingDate}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  border: "none",
-                  borderBottom: "1px solid #e0e0e0",
-                },
-                "&:hover fieldset": {
-                  borderBottom: "1px solid #1976d2",
-                },
-                "&.Mui-focused fieldset": {
-                  borderBottom: "2px solid #1976d2",
-                },
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            select
-            name="meetingType"
-            label="Meeting Type"
-            value={formData.meetingType}
-            onChange={handleChange}
-            error={!!errors.meetingType}
-            helperText={errors.meetingType}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  border: "none",
-                  borderBottom: "1px solid #e0e0e0",
-                },
-                "&:hover fieldset": {
-                  borderBottom: "1px solid #1976d2",
-                },
-                "&.Mui-focused fieldset": {
-                  borderBottom: "2px solid #1976d2",
-                },
-              },
-            }}
-          >
-            <MenuItem value="">--Please choose meeting type--</MenuItem>
-            <MenuItem value="weekly">Weekly Meeting</MenuItem>
-            <MenuItem value="monthly">Monthly Meeting</MenuItem>
-            <MenuItem value="special">Special Meeting</MenuItem>
-          </TextField>
-        </div>
-
-        <TextField
-          fullWidth
-          name="name"
-          label="Name"
-          value={formData.name}
-          onChange={handleChange}
-          error={!!errors.name}
-          helperText={errors.name}
-          sx={{
-            marginBottom: "20px",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                border: "none",
-                borderBottom: "1px solid #e0e0e0",
-              },
-              "&:hover fieldset": {
-                borderBottom: "1px solid #1976d2",
-              },
-              "&.Mui-focused fieldset": {
-                borderBottom: "2px solid #1976d2",
-              },
-            },
-          }}
-        />
-
         <Typography
-          variant="subtitle1"
-          sx={{ mb: 1, color: "rgba(0, 0, 0, 0.6)" }}
+          variant="h5"
+          sx={{
+            marginBottom: "24px",
+            color: "#1a2233",
+            fontWeight: 600,
+          }}
         >
-          Amount Paid
+          Record Payment
         </Typography>
 
-        <TextField
-          fullWidth
-          name="amountPaidIntern"
-          label="Intern"
-          type="number"
-          value={formData.amountPaidIntern}
-          onChange={handleChange}
-          error={!!errors.amountPaidIntern}
-          helperText={errors.amountPaidIntern}
-          sx={{
-            marginBottom: "20px",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                border: "none",
-                borderBottom: "1px solid #e0e0e0",
-              },
-              "&:hover fieldset": {
-                borderBottom: "1px solid #1976d2",
-              },
-              "&.Mui-focused fieldset": {
-                borderBottom: "2px solid #1976d2",
-              },
-            },
-          }}
-        />
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="fullName"
+                label="Full Name"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            </Grid>
 
-        <TextField
-          fullWidth
-          name="amountPaidMember"
-          label="Member"
-          type="number"
-          value={formData.amountPaidMember}
-          onChange={handleChange}
-          error={!!errors.amountPaidMember}
-          helperText={errors.amountPaidMember}
-          sx={{
-            marginBottom: "20px",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                border: "none",
-                borderBottom: "1px solid #e0e0e0",
-              },
-              "&:hover fieldset": {
-                borderBottom: "1px solid #1976d2",
-              },
-              "&.Mui-focused fieldset": {
-                borderBottom: "2px solid #1976d2",
-              },
-            },
-          }}
-        />
+            <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category"
+                  value={formData.category}
+                  label="Category"
+                  onChange={handleChange}
+                  sx={{
+                    borderRadius: "8px",
+                  }}
+                >
+                  <MenuItem value="S">Regular</MenuItem>
+                  <MenuItem value="vip">VIP</MenuItem>
+                  <MenuItem value="vip">VIP</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-        <TextField
-          fullWidth
-          name="amountPaidSenior"
-          label="Senior Staff"
-          type="number"
-          value={formData.amountPaidSenior}
-          onChange={handleChange}
-          error={!!errors.amountPaidSenior}
-          helperText={errors.amountPaidSenior}
-          sx={{
-            marginBottom: "20px",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                border: "none",
-                borderBottom: "1px solid #e0e0e0",
-              },
-              "&:hover fieldset": {
-                borderBottom: "1px solid #1976d2",
-              },
-              "&.Mui-focused fieldset": {
-                borderBottom: "2px solid #1976d2",
-              },
-            },
-          }}
-        />
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                name="amountPaid"
+                label="Amount Paid"
+                type="number"
+                value={formData.amountPaid}
+                onChange={handleChange}
+                required
+                InputProps={{
+                  startAdornment: "₦",
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            </Grid>
 
-        <Button
-          type="submit"
-          variant="contained"
-          fullWidth
-          sx={{
-            mt: 2,
-            backgroundColor: "#3b82f6",
-            textTransform: "none",
-            borderRadius: "8px",
-            padding: "10px",
-            "&:hover": {
-              backgroundColor: "#2563eb",
-            },
-          }}
-        >
-          Submit
-        </Button>
-        {submitStatus && (
-          <Alert severity={submitStatus.type} sx={{ mt: 2 }}>
-            {submitStatus.message}
-          </Alert>
-        )}
-        {errors.submit && (
-          <div style={{ color: "red", marginTop: 8 }}>{errors.submit}</div>
-        )}
-      </form>
-    </div>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                name="paymentDate"
+                label="Payment Date"
+                type="date"
+                value={formData.paymentDate}
+                onChange={handleChange}
+                required
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Payment Method</InputLabel>
+                <Select
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  label="Payment Method"
+                  onChange={handleChange}
+                  sx={{
+                    borderRadius: "8px",
+                  }}
+                >
+                  <MenuItem value="cash">Cash</MenuItem>
+                  <MenuItem value="transfer">Bank Transfer</MenuItem>
+                  <MenuItem value="pos">POS</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                name="transactionId"
+                label="Transaction ID"
+                value={formData.transactionId}
+                onChange={handleChange}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="description"
+                label="Description"
+                value={formData.description}
+                onChange={handleChange}
+                multiline
+                rows={3}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sx={{ marginTop: "16px" }}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  backgroundColor: "#3b82f6",
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                  "&:hover": {
+                    backgroundColor: "#2563eb",
+                  },
+                }}
+              >
+                Record Payment
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Paper>
+    </Box>
   );
 };
 

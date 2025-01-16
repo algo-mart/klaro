@@ -5,7 +5,7 @@
   --primary-light: #93c5fd;
 
   /* Neutral Colors */
-  --background: #f8fafc;
+  --background: #1a2233;
   --surface: #ffffff;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
@@ -18,8 +18,8 @@
   --info: #3b82f6;
 
   /* Dark Mode Colors */
-  --dark-background: #1e293b;
-  --dark-surface: #2c2c2c;
+  --dark-background: #1a2233;
+  --dark-surface: #1a2233;
   --dark-text: #f8fafc;
   --dark-text-secondary: #94a3b8;
 
