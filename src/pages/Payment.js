@@ -1,3 +1,4 @@
+// Enhanced Payment Component with Improved Styling
 import React, { useState } from "react";
 import {
   TextField,
@@ -6,25 +7,24 @@ import {
   Typography,
   Box,
   Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Payment = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: "",
-    category: "",
-    amountPaid: "",
-    paymentDate: "",
-    paymentMethod: "",
-    transactionId: "",
-    description: "",
+    id: "",
+    date: "",
+    totalAmount: "",
+    event: "",
   });
 
+  const [loading, setLoading] = useState(false); // Loading state
+  const [error, setError] = useState(null); // Error state
+  const [successMessage, setSuccessMessage] = useState(null); // Success state
+
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -33,189 +33,202 @@ const Payment = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Submit payment form
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log("Form submitted:", formData);
-    // Navigate back to dashboard after submission
-    navigate("/dashboard");
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await axios.post("/api/payments", formData);
+
+      if (response.status === 201) {
+        console.log("API Response:", response.data); // Log success data
+        setSuccessMessage("Payment recorded successfully!");
+        setTimeout(() => navigate("/dashboard"), 3000);
+      } else {
+        console.log("Unexpected response status:", response.status); // Log unexpected response
+        setError(`Unexpected response: ${response.status}`);
+      }
+    } catch (err) {
+      if (err.response) {
+        console.error(
+          `Server Error ${err.response.status}:`,
+          err.response.data.message || "Unknown error"
+        );
+        setError(
+          `Server responded with status ${err.response.status}: ${
+            err.response.data.message || "Unknown error"
+          }`
+        );
+      } else if (err.request) {
+        console.error("No response from server:", err.request);
+        setError("No response from the server. Please check your connection.");
+      } else {
+        console.error("Error during request:", err.message);
+        setError(`Request error: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Box
       sx={{
-        padding: "20px",
-        backgroundColor: "#f5f7fa",
-        minHeight: "calc(100vh - 64px)",
+        padding: { xs: "16px", sm: "32px" },
+        backgroundColor: "#f0f4f8",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <Paper
-        elevation={0}
+        elevation={3}
         sx={{
           maxWidth: "600px",
-          margin: "0 auto",
+          width: "100%",
           padding: "32px",
-          borderRadius: "12px",
-          border: "1px solid #e0e0e0",
+          borderRadius: "16px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
         <Typography
-          variant="h5"
+          variant="h4"
+          align="center"
           sx={{
             marginBottom: "24px",
-            color: "#1a2233",
-            fontWeight: 600,
+            color: "#2c3e50",
+            fontWeight: 700,
           }}
         >
-          Record Payment
+          Payment Form
         </Typography>
+
+        {/* Success Message */}
+        {successMessage && (
+          <Box
+            sx={{
+              marginBottom: "16px",
+              padding: "16px",
+              backgroundColor: "#e6fffa",
+              border: "1px solid #3b82f6",
+              borderRadius: "8px",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="h6" color="primary">
+              {successMessage}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Redirecting to dashboard in 3 seconds...
+            </Typography>
+          </Box>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <Typography
+            variant="h6"
+            color="error"
+            sx={{ marginBottom: "16px", textAlign: "center" }}
+          >
+            {error}
+          </Typography>
+        )}
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                name="fullName"
-                label="Full Name"
-                value={formData.fullName}
+                name="id"
+                label="Transaction ID"
+                value={formData.id}
                 onChange={handleChange}
                 required
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                   },
                 }}
               />
             </Grid>
-
             <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={formData.category}
-                  label="Category"
-                  onChange={handleChange}
-                  sx={{
-                    borderRadius: "8px",
-                  }}
-                >
-                  <MenuItem value="S">Regular</MenuItem>
-                  <MenuItem value="vip">VIP</MenuItem>
-                  <MenuItem value="vip">VIP</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                name="amountPaid"
-                label="Amount Paid"
+                name="date"
+                label="Payment Date"
+                type="datetime-local"
+                value={formData.date}
+                onChange={handleChange}
+                required
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                name="totalAmount"
+                label="Total Amount"
                 type="number"
-                value={formData.amountPaid}
+                value={formData.totalAmount}
                 onChange={handleChange}
                 required
                 InputProps={{
-                  startAdornment: "₦",
+                  startAdornment: <span>₦</span>,
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                   },
                 }}
               />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="paymentDate"
-                label="Payment Date"
-                type="date"
-                value={formData.paymentDate}
-                onChange={handleChange}
-                required
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                  },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Payment Method</InputLabel>
-                <Select
-                  name="paymentMethod"
-                  value={formData.paymentMethod}
-                  label="Payment Method"
-                  onChange={handleChange}
-                  sx={{
-                    borderRadius: "8px",
-                  }}
-                >
-                  <MenuItem value="cash">Cash</MenuItem>
-                  <MenuItem value="transfer">Bank Transfer</MenuItem>
-                  <MenuItem value="pos">POS</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                name="transactionId"
-                label="Transaction ID"
-                value={formData.transactionId}
-                onChange={handleChange}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                  },
-                }}
-              />
-            </Grid>
-
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                name="description"
-                label="Description"
-                value={formData.description}
+                name="event"
+                label="Event ID"
+                type="number"
+                value={formData.event}
                 onChange={handleChange}
-                multiline
-                rows={3}
+                required
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                   },
                 }}
               />
             </Grid>
-
-            <Grid item xs={12} sx={{ marginTop: "16px" }}>
+            <Grid item xs={12}>
               <Button
                 type="submit"
                 variant="contained"
                 fullWidth
+                disabled={loading}
                 sx={{
                   backgroundColor: "#3b82f6",
+                  color: "white",
+                  fontWeight: 600,
                   textTransform: "none",
-                  borderRadius: "8px",
                   padding: "12px",
                   fontSize: "1rem",
-                  fontWeight: 500,
+                  borderRadius: "12px",
+                  boxShadow: "0 4px 6px rgba(59, 130, 246, 0.3)",
                   "&:hover": {
                     backgroundColor: "#2563eb",
                   },
                 }}
               >
-                Record Payment
+                {loading ? "Submitting..." : "Submit Payment"}
               </Button>
             </Grid>
           </Grid>
