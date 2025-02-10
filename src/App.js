@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,7 +12,7 @@ import "./styles/theme.css";
 import "./styles/layout.css";
 
 // Import React Icons
-import { MdDashboard, MdPayment, MdAdd, MdLogout } from "react-icons/md";
+import { MdDashboard, MdPayment, MdAdd, MdLogout, MdReceipt } from "react-icons/md";
 import { BiCalendarCheck } from "react-icons/bi";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { BsCalendarEvent } from "react-icons/bs";
@@ -25,9 +25,11 @@ import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
 import Payment from "./pages/Payment";
 import Monthly from "./pages/Monthly";
+import MonthlySummary from "./pages/monthlysummary.js"; // New Monthly Summary page
 import Addparticipants from "./pages/Addparticipants";
 import Login from "./pages/Login";
 import Events from "./pages/Events";
+import PaymentRecords from "./pages/paymentrecords.js"; // Ensure PaymentRecords is exported correctly
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -37,11 +39,10 @@ const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated()) {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
-
   return children;
 };
 
-// Page Title Component
+// Page Title Component (updated to remove any extra icon)
 const PageTitle = () => {
   const location = useLocation();
 
@@ -56,10 +57,14 @@ const PageTitle = () => {
         return "Daily Payment Entry";
       case "/monthly":
         return "Monthly Review";
+      case "/monthlysummary":
+        return "Monthly Summary";
       case "/addparticipants":
         return "Add New Participants";
       case "/events":
         return "Events";
+      case "/paymentrecords":
+        return "Payment Records";
       default:
         return "";
     }
@@ -67,10 +72,7 @@ const PageTitle = () => {
 
   return (
     <div className="page-header">
-      <h1 className="page-title">
-        <span className="title-icon">📄</span>
-        {getPageTitle()}
-      </h1>
+      <h1 className="page-title">{getPageTitle()}</h1>
     </div>
   );
 };
@@ -79,8 +81,9 @@ function AppContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
-  const isLoginPage =
-    location.pathname === "/" || location.pathname === "/login";
+
+  // Define login page if the pathname is "/" or "/login"
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
 
   useEffect(() => {
     // Check for stored user data on app load
@@ -100,12 +103,11 @@ function AppContent() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu when clicking outside or on a nav link
   const handleOverlayClick = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Close mobile menu when route changes
   const handleNavLinkClick = () => {
     setIsMobileMenuOpen(false);
   };
@@ -116,31 +118,18 @@ function AppContent() {
 
   const navLinks = [
     { path: "/dashboard", name: "Dashboard", icon: <MdDashboard size={24} /> },
-    {
-      path: "/attendance",
-      name: "Attendance",
-      icon: <BiCalendarCheck size={24} />,
-    },
+    { path: "/attendance", name: "Attendance", icon: <BiCalendarCheck size={24} /> },
     { path: "/payment", name: "Daily Payment", icon: <MdPayment size={24} /> },
-    {
-      path: "/monthly",
-      name: "Monthly Review",
-      icon: <IoStatsChartSharp size={24} />,
-    },
-    {
-      path: "/events",
-      name: "Events",
-      icon: <BsCalendarEvent size={24} />,
-    },
-    {
-      path: "/addparticipants",
-      name: "Add Participants",
-      icon: <MdAdd size={24} />,
-    },
+    { path: "/monthly", name: "Monthly Review", icon: <IoStatsChartSharp size={24} /> },
+    { path: "/monthlysummary", name: "Monthly Summary", icon: <IoStatsChartSharp size={24} /> },
+    { path: "/events", name: "Events", icon: <BsCalendarEvent size={24} /> },
+    { path: "/addparticipants", name: "Add Participants", icon: <MdAdd size={24} /> },
+    { path: "/paymentrecords", name: "Payment Records", icon: <MdReceipt size={24} /> },
   ];
 
   return (
     <div className="app-container">
+      {/* Render Sidebar and Mobile Menu only if user is logged in and not on the login page */}
       {isAuthenticated() && !isLoginPage && (
         <>
           {/* Mobile Menu Button */}
@@ -149,7 +138,7 @@ function AppContent() {
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? "✕" : "☰"}
+            {isMobileMenuOpen ? "Close Menu" : "Open Menu"}
           </button>
 
           {/* Mobile Overlay */}
@@ -198,9 +187,8 @@ function AppContent() {
       )}
 
       {/* Main Content */}
-      <main
-        className={`main-content ${!isAuthenticated() || isLoginPage ? "full-width" : ""}`}
-      >
+      <main className={`main-content ${!isAuthenticated() || isLoginPage ? "full-width" : ""}`}>
+        {/* Render Navbar and PageTitle only if user is logged in and not on the login page */}
         {isAuthenticated() && !isLoginPage && (
           <>
             <Navbar />
@@ -210,6 +198,7 @@ function AppContent() {
         <div className="page-content">
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route
               path="/dashboard"
               element={
@@ -243,6 +232,14 @@ function AppContent() {
               }
             />
             <Route
+              path="/monthlysummary"
+              element={
+                <ProtectedRoute>
+                  <MonthlySummary />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/events"
               element={
                 <ProtectedRoute>
@@ -255,6 +252,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Addparticipants />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/paymentrecords"
+              element={
+                <ProtectedRoute>
+                  <PaymentRecords />
                 </ProtectedRoute>
               }
             />
