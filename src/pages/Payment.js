@@ -1,5 +1,5 @@
-// Enhanced Payment Component with Improved Styling
 import React, { useState } from "react";
+import axios from "axios";
 import {
   TextField,
   Button,
@@ -8,21 +8,18 @@ import {
   Box,
   Paper,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const Payment = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    id: "",
+    participantId: "",
     date: "",
     totalAmount: "",
     event: "",
   });
-
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(null); // Error state
-  const [successMessage, setSuccessMessage] = useState(null); // Success state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState(null);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -33,42 +30,62 @@ const Payment = () => {
     }));
   };
 
-  // Submit payment form
+  // Submit payment form using axios
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevents the page from reloading
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
+    setPaymentDetails(null);
+
+    // Validate and format date
+    const dateObj = new Date(formData.date);
+    if (isNaN(dateObj.getTime())) {
+      setError("Invalid date provided.");
+      setLoading(false);
+      return;
+    }
+    const isoDate = dateObj.toISOString();
+
+    // Prepare payload
+    const payload = {
+      date: isoDate, // Convert to ISO string
+      totalAmount: Number(formData.totalAmount),
+      participantId: Number(formData.participantId),
+      event: Number(formData.event),
+    };
+
+    console.log("Sending Payload:", payload);
 
     try {
-      const response = await axios.post("/api/payments", formData);
+      const response = await axios.post(
+        "https://kibou-registry-1.onrender.com/api/payments",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          maxBodyLength: Infinity,
+        }
+      );
 
-      if (response.status === 201) {
-        console.log("API Response:", response.data); // Log success data
-        setSuccessMessage("Payment recorded successfully!");
-        setTimeout(() => navigate("/dashboard"), 3000);
-      } else {
-        console.log("Unexpected response status:", response.status); // Log unexpected response
-        setError(`Unexpected response: ${response.status}`);
-      }
+      console.log("API Response:", response.data);
+      setSuccessMessage("Payment recorded successfully!");
+      setPaymentDetails(response.data);
+
+      // Clear the form after success
+      setFormData({
+        participantId: "",
+        date: "",
+        totalAmount: "",
+        event: "",
+      });
     } catch (err) {
-      if (err.response) {
-        console.error(
-          `Server Error ${err.response.status}:`,
-          err.response.data.message || "Unknown error"
-        );
-        setError(
-          `Server responded with status ${err.response.status}: ${
-            err.response.data.message || "Unknown error"
-          }`
-        );
-      } else if (err.request) {
-        console.error("No response from server:", err.request);
-        setError("No response from the server. Please check your connection.");
-      } else {
-        console.error("Error during request:", err.message);
-        setError(`Request error: ${err.message}`);
-      }
+      console.error("API Request Failed:", err);
+      const errorMsg =
+        (err.response && err.response.data && err.response.data.error) ||
+        `Request error: ${err.message}`;
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -98,16 +115,12 @@ const Payment = () => {
         <Typography
           variant="h4"
           align="center"
-          sx={{
-            marginBottom: "24px",
-            color: "#2c3e50",
-            fontWeight: 700,
-          }}
+          sx={{ marginBottom: "24px", color: "#2c3e50", fontWeight: 700 }}
         >
           Payment Form
         </Typography>
 
-        {/* Success Message */}
+        {/* Display Success Message and Payment Details if available */}
         {successMessage && (
           <Box
             sx={{
@@ -122,13 +135,32 @@ const Payment = () => {
             <Typography variant="h6" color="primary">
               {successMessage}
             </Typography>
-            <Typography variant="body2" color="textSecondary">
-              Redirecting to dashboard in 3 seconds...
-            </Typography>
+            {paymentDetails && (
+              <Box mt={2} textAlign="left">
+                <Typography variant="body1">
+                  <strong>Payment ID:</strong> {paymentDetails.id}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Date:</strong> {paymentDetails.date}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Total Amount:</strong> ₦{paymentDetails.totalAmount}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Participant:</strong> {paymentDetails.participantName}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Event Type:</strong> {paymentDetails.eventType}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Event ID:</strong> {paymentDetails.event}
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
 
-        {/* Error Message */}
+        {/* Display Error Message */}
         {error && (
           <Typography
             variant="h6"
@@ -139,20 +171,20 @@ const Payment = () => {
           </Typography>
         )}
 
+        {/* Payment Form */}
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                name="id"
-                label="Transaction ID"
-                value={formData.id}
+                name="participantId"
+                label="Participant ID"
+                type="number"
+                value={formData.participantId}
                 onChange={handleChange}
                 required
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                  },
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
                 }}
               />
             </Grid>
@@ -167,9 +199,7 @@ const Payment = () => {
                 required
                 InputLabelProps={{ shrink: true }}
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                  },
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
                 }}
               />
             </Grid>
@@ -182,13 +212,9 @@ const Payment = () => {
                 value={formData.totalAmount}
                 onChange={handleChange}
                 required
-                InputProps={{
-                  startAdornment: <span>₦</span>,
-                }}
+                InputProps={{ startAdornment: <span>₦</span> }}
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                  },
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
                 }}
               />
             </Grid>
@@ -202,9 +228,7 @@ const Payment = () => {
                 onChange={handleChange}
                 required
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "12px",
-                  },
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
                 }}
               />
             </Grid>
@@ -223,9 +247,7 @@ const Payment = () => {
                   fontSize: "1rem",
                   borderRadius: "12px",
                   boxShadow: "0 4px 6px rgba(59, 130, 246, 0.3)",
-                  "&:hover": {
-                    backgroundColor: "#2563eb",
-                  },
+                  "&:hover": { backgroundColor: "#2563eb" },
                 }}
               >
                 {loading ? "Submitting..." : "Submit Payment"}

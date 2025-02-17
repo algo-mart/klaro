@@ -1,208 +1,317 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const initialPayments = [
-  { id: 1, name: "John Doe", amount: 100, date: "2024-02-01" },
-  { id: 2, name: "Jane Smith", amount: 150, date: "2024-02-02" },
-];
+const initialPayments = [];
 
 const PaymentRecords = () => {
   const [payments, setPayments] = useState(initialPayments);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    event: "",
+    startDate: "",
+    endDate: "",
+    eventType: "ALL", // Using uppercase for consistency
+  });
   const [editingPayment, setEditingPayment] = useState(null);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    // Simulate fetching data from an API
-    // fetchPayments().then(fetchedPayments => setPayments(fetchedPayments));
-  }, []);
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  // Helper to format date strings for datetime-local inputs
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const pad = (n) => n.toString().padStart(2, "0");
+    // Format: YYYY-MM-DDTHH:mm
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  const filteredPayments = payments.filter((payment) =>
-    payment.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch payments on component mount
+  useEffect(() => {
+    const fetchPayments = async () => {
+      console.log("Fetching payments...");
+      try {
+        // Updated pagination: fetching 10 records rather than 1.
+        const response = await axios.get(
+          "https://kibou-registry-1.onrender.com/api/payments?eventType=REGULAR&page=0&size=10"
+        );
+
+        console.log("API Response:", response);
+
+        if (response.status === 200) {
+          // Support either an array response or a nested structure (e.g., { data: [...] })
+          let paymentsData = Array.isArray(response.data)
+            ? response.data
+            : response.data.data;
+
+          if (Array.isArray(paymentsData)) {
+            setPayments(paymentsData);
+          } else {
+            console.error("Unexpected API response format:", response.data);
+            setError("Unexpected API response format");
+          }
+        } else {
+          setError("Failed to load payment records");
+        }
+      } catch (err) {
+        console.error("Error fetching payments:", err.response || err.message);
+        setError(err.response?.data?.message || "Failed to load payment records");
+      }
+    };
+
+    fetchPayments();
+  }, []);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Filter payments based on the current filters (case-insensitive for event name, normalized event type)
+  const filteredPayments = payments.filter((payment) => {
+    const matchEvent = (payment.event || "")
+      .toLowerCase()
+      .includes(filters.event.toLowerCase());
+    let matchStart = true;
+    if (filters.startDate) {
+      matchStart = new Date(payment.startDate) >= new Date(filters.startDate);
+    }
+    let matchEnd = true;
+    if (filters.endDate) {
+      matchEnd = new Date(payment.endDate) <= new Date(filters.endDate);
+    }
+    const matchType =
+      filters.eventType === "ALL" ||
+      payment.eventType.toUpperCase() === filters.eventType;
+
+    return matchEvent && matchStart && matchEnd && matchType;
+  });
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditingPayment((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleEdit = (payment) => {
     setEditingPayment(payment);
   };
 
-  const handleDelete = (id) => {
-    setPayments(payments.filter((payment) => payment.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`https://kibou-registry-1.onrender.com/api/payments/${id}`);
+      setPayments((prevPayments) =>
+        prevPayments.filter((payment) => payment.id !== id)
+      );
+    } catch (err) {
+      console.error("Error deleting payment:", err.response || err.message);
+      setError("Error deleting payment");
+    }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingPayment) {
-      setPayments(
-        payments.map((payment) =>
-          payment.id === editingPayment.id ? editingPayment : payment
-        )
-      );
+      try {
+        const response = await axios.put(
+          `https://kibou-registry-1.onrender.com/api/payments/${editingPayment.id}`,
+          editingPayment,
+          { headers: { "Content-Type": "application/json" } }
+        );
+        setPayments((prevPayments) =>
+          prevPayments.map((p) => (p.id === editingPayment.id ? response.data : p))
+        );
+      } catch (err) {
+        console.error("Error updating payment:", err.response || err.message);
+        setError("Error updating payment");
+      }
       setEditingPayment(null);
     }
   };
 
-  const handleEditingPaymentNameChange = (e) => {
-    if (editingPayment) {
-      setEditingPayment({ ...editingPayment, name: e.target.value });
-    }
+  const handleCancelEdit = () => {
+    setEditingPayment(null);
   };
 
   return (
     <>
-      {/* Inline CSS styling */}
       <style>{`
         .payment-records {
-          max-width: 800px;
-          margin: 40px auto;
-          padding: 20px;
+          max-width: 1100px;
+          margin: 50px auto;
+          padding: 30px;
           background-color: #ffffff;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          font-family: 'Poppins', sans-serif;
         }
         .payment-records__title {
           text-align: center;
-          margin-bottom: 20px;
-          font-size: 2rem;
-          color: #333;
+          font-size: 2.5rem;
+          font-weight: bold;
+          color: #2c3e50;
         }
-        .payment-records__search input {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
-          margin-bottom: 20px;
-        }
-        .payment-records__list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        .payment-records__item {
+        .search-form {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 8px;
-          border-bottom: 1px solid #f0f0f0;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 15px;
+          margin-bottom: 25px;
         }
-        .payment-records__item:last-child {
-          border-bottom: none;
+        .search-form input,
+        .search-form select {
+          padding: 10px 14px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 1rem;
         }
-        .payment-records__info {
+        .payment-cards {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 25px;
+        }
+        .payment-card {
+          flex: 1 1 calc(50% - 25px);
+          background-color: #f8f9fa;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .edit-form {
           display: flex;
           flex-direction: column;
-        }
-        .payment-records__name {
-          font-weight: 600;
-          font-size: 1.1rem;
-          color: #333;
-        }
-        .payment-records__amount {
-          color: #28a745;
-          font-size: 1rem;
-          margin-top: 4px;
-        }
-        .payment-records__date {
-          color: #888;
-          font-size: 0.9rem;
-          margin-top: 2px;
-        }
-        .payment-records__actions button {
-          margin-left: 8px;
-        }
-        .btn {
-          padding: 8px 14px;
-          border: none;
-          border-radius: 4px;
-          font-size: 0.9rem;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-        }
-        .btn--edit {
-          background-color: #007bff;
-          color: #fff;
-        }
-        .btn--edit:hover {
-          background-color: #0069d9;
-        }
-        .btn--delete {
-          background-color: #dc3545;
-          color: #fff;
-        }
-        .btn--delete:hover {
-          background-color: #c82333;
-        }
-        .btn--save {
-          background-color: #28a745;
-          color: #fff;
-        }
-        .btn--save:hover {
-          background-color: #218838;
-        }
-        .payment-records__edit {
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #eee;
-          display: flex;
-          align-items: center;
           gap: 10px;
         }
-        .payment-records__edit input {
-          flex: 1;
-          padding: 8px 10px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
+        .edit-actions {
+          display: flex;
+          gap: 10px;
+        }
+        .error-message {
+          text-align: center;
+          color: red;
+          font-weight: bold;
         }
       `}</style>
-
       <div className="payment-records">
         <h2 className="payment-records__title">Payment Records</h2>
-        
-        <div className="payment-records__search">
+
+        {error && <p className="error-message">{error}</p>}
+
+        <div className="search-form">
           <input
             type="text"
-            placeholder="Search payments..."
-            value={searchTerm}
-            onChange={handleSearch}
+            name="event"
+            placeholder="Search Event"
+            value={filters.event}
+            onChange={handleFilterChange}
           />
+          <input
+            type="datetime-local"
+            name="startDate"
+            value={filters.startDate}
+            onChange={handleFilterChange}
+          />
+          <input
+            type="datetime-local"
+            name="endDate"
+            value={filters.endDate}
+            onChange={handleFilterChange}
+          />
+          <select
+            name="eventType"
+            value={filters.eventType}
+            onChange={handleFilterChange}
+          >
+            <option value="ALL">All</option>
+            <option value="REGULAR">Regular</option>
+            <option value="VIP">VIP</option>
+          </select>
         </div>
-        
-        <ul className="payment-records__list">
-          {filteredPayments.map((payment) => (
-            <li key={payment.id} className="payment-records__item">
-              <div className="payment-records__info">
-                <span className="payment-records__name">{payment.name}</span>
-                <span className="payment-records__amount">₦{payment.amount}</span>
-                <span className="payment-records__date">({payment.date})</span>
+
+        <div className="payment-cards">
+          {filteredPayments.length > 0 ? (
+            filteredPayments.map((payment) => (
+              <div key={payment.id} className="payment-card">
+                {editingPayment && editingPayment.id === payment.id ? (
+                  <div className="edit-form">
+                    <label>
+                      Event:
+                      <input
+                        type="text"
+                        name="event"
+                        value={editingPayment.event}
+                        onChange={handleEditChange}
+                      />
+                    </label>
+                    <label>
+                      Start Date:
+                      <input
+                        type="datetime-local"
+                        name="startDate"
+                        value={formatDateForInput(editingPayment.startDate)}
+                        onChange={handleEditChange}
+                      />
+                    </label>
+                    <label>
+                      End Date:
+                      <input
+                        type="datetime-local"
+                        name="endDate"
+                        value={formatDateForInput(editingPayment.endDate)}
+                        onChange={handleEditChange}
+                      />
+                    </label>
+                    <label>
+                      Event Type:
+                      <select
+                        name="eventType"
+                        value={editingPayment.eventType.toUpperCase()}
+                        onChange={handleEditChange}
+                      >
+                        <option value="REGULAR">Regular</option>
+                        <option value="VIP">VIP</option>
+                      </select>
+                    </label>
+                    <label>
+                      Total Amount:
+                      <input
+                        type="number"
+                        name="totalAmount"
+                        value={editingPayment.totalAmount}
+                        onChange={handleEditChange}
+                      />
+                    </label>
+                    <div className="edit-actions">
+                      <button onClick={handleSaveEdit}>Save</button>
+                      <button onClick={handleCancelEdit}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h3>{payment.event}</h3>
+                    <div className="payment-card__details">
+                      <p>
+                        <strong>Start:</strong>{" "}
+                        {new Date(payment.startDate).toLocaleString()}
+                      </p>
+                      <p>
+                        <strong>End:</strong>{" "}
+                        {new Date(payment.endDate).toLocaleString()}
+                      </p>
+                      <p>
+                        <strong>Type:</strong> {payment.eventType}
+                      </p>
+                      <p>
+                        <strong>Total:</strong> ₦{payment.totalAmount}
+                      </p>
+                      <button onClick={() => handleEdit(payment)}>Edit</button>
+                      <button onClick={() => handleDelete(payment.id)}>Delete</button>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="payment-records__actions">
-                <button className="btn btn--edit" onClick={() => handleEdit(payment)}>
-                  Edit
-                </button>
-                <button className="btn btn--delete" onClick={() => handleDelete(payment.id)}>
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-        
-        {editingPayment && (
-          <div className="payment-records__edit">
-            <h3>Edit Payment</h3>
-            <input
-              type="text"
-              value={editingPayment.name}
-              onChange={handleEditingPaymentNameChange}
-            />
-            <button className="btn btn--save" onClick={handleSaveEdit}>
-              Save
-            </button>
-          </div>
-        )}
+            ))
+          ) : (
+            <p className="error-message">No payment records found.</p>
+          )}
+        </div>
       </div>
     </>
   );
