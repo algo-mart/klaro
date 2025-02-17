@@ -12,7 +12,13 @@ import "./styles/theme.css";
 import "./styles/layout.css";
 
 // Import React Icons
-import { MdDashboard, MdPayment, MdAdd, MdLogout, MdReceipt } from "react-icons/md";
+import {
+  MdDashboard,
+  MdPayment,
+  MdAdd,
+  MdLogout,
+  MdReceipt,
+} from "react-icons/md";
 import { BiCalendarCheck } from "react-icons/bi";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { BsCalendarEvent } from "react-icons/bs";
@@ -35,7 +41,11 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  return isAuthenticated() ? children : <Navigate to="/" state={{ from: location }} replace />;
+  return isAuthenticated() ? (
+    children
+  ) : (
+    <Navigate to="/" state={{ from: location }} replace />
+  );
 };
 
 // Page Title Component
@@ -63,7 +73,8 @@ function AppContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
-  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
+  const isLoginPage =
+    location.pathname === "/" || location.pathname === "/login";
 
   useEffect(() => {
     try {
@@ -77,12 +88,28 @@ function AppContent() {
 
   const navLinks = [
     { path: "/dashboard", name: "Dashboard", icon: <MdDashboard size={24} /> },
-    { path: "/attendance", name: "Attendance", icon: <BiCalendarCheck size={24} /> },
+    {
+      path: "/attendance",
+      name: "Attendance",
+      icon: <BiCalendarCheck size={24} />,
+    },
     { path: "/payment", name: "Daily Payment", icon: <MdPayment size={24} /> },
-    { path: "/monthly", name: "Monthly Review", icon: <IoStatsChartSharp size={24} /> },
+    {
+      path: "/monthly",
+      name: "Monthly Review",
+      icon: <IoStatsChartSharp size={24} />,
+    },
     { path: "/events", name: "Events", icon: <BsCalendarEvent size={24} /> },
-    { path: "/addparticipants", name: "Add Participants", icon: <MdAdd size={24} /> },
-    { path: "/paymentrecords", name: "Payment Records", icon: <MdReceipt size={24} /> },
+    {
+      path: "/addparticipants",
+      name: "Add Participants",
+      icon: <MdAdd size={24} />,
+    },
+    {
+      path: "/paymentrecords",
+      name: "Payment Records",
+      icon: <MdReceipt size={24} />,
+    },
   ];
 
   return (
@@ -90,12 +117,20 @@ function AppContent() {
       {isAuthenticated() && !isLoginPage && (
         <>
           {/* Mobile Menu Button */}
-          <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <button
+            className="mobile-menu-button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
             {isMobileMenuOpen ? "Close Menu" : "Open Menu"}
           </button>
 
           {/* Mobile Overlay */}
-          {isMobileMenuOpen && <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)} />}
+          {isMobileMenuOpen && (
+            <div
+              className="mobile-overlay"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+          )}
 
           {/* Sidebar */}
           <aside className={`sidebar ${isMobileMenuOpen ? "open" : ""}`}>
@@ -104,7 +139,12 @@ function AppContent() {
             </div>
             <nav className="nav-menu">
               {navLinks.map(({ path, name, icon }) => (
-                <NavLink key={path} to={path} onClick={() => setIsMobileMenuOpen(false)} className="nav-link">
+                <NavLink
+                  key={path}
+                  to={path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="nav-link"
+                >
                   <span className="icon">{icon}</span>
                   <span className="text">{name}</span>
                 </NavLink>
@@ -120,7 +160,9 @@ function AppContent() {
         </>
       )}
 
-      <main className={`main-content ${!isAuthenticated() || isLoginPage ? "full-width" : ""}`}>
+      <main
+        className={`main-content ${!isAuthenticated() || isLoginPage ? "full-width" : ""}`}
+      >
         {isAuthenticated() && !isLoginPage && (
           <>
             <Navbar />
@@ -131,13 +173,62 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-            <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
-            <Route path="/monthly" element={<ProtectedRoute><Monthly /></ProtectedRoute>} />
-            <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-            <Route path="/addparticipants" element={<ProtectedRoute><Addparticipants /></ProtectedRoute>} />
-            <Route path="/paymentrecords" element={<ProtectedRoute><PaymentRecords /></ProtectedRoute>} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/attendance"
+              element={
+                <ProtectedRoute>
+                  <Attendance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/monthly"
+              element={
+                <ProtectedRoute>
+                  <Monthly />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <Events />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/addparticipants"
+              element={
+                <ProtectedRoute>
+                  <Addparticipants />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/paymentrecords"
+              element={
+                <ProtectedRoute>
+                  <PaymentRecords />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </main>

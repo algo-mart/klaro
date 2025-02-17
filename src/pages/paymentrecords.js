@@ -21,7 +21,7 @@ const PaymentRecords = () => {
     const pad = (n) => n.toString().padStart(2, "0");
     // Format: YYYY-MM-DDTHH:mm
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate()
+      date.getDate(),
     )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
@@ -32,7 +32,7 @@ const PaymentRecords = () => {
       try {
         // Updated pagination: fetching 10 records rather than 1.
         const response = await axios.get(
-          "https://kibou-registry-1.onrender.com/api/payments?eventType=REGULAR&page=0&size=10"
+          "https://kibou-registry-1.onrender.com/api/payments?eventType=REGULAR&page=0&size=10",
         );
 
         console.log("API Response:", response);
@@ -54,7 +54,9 @@ const PaymentRecords = () => {
         }
       } catch (err) {
         console.error("Error fetching payments:", err.response || err.message);
-        setError(err.response?.data?.message || "Failed to load payment records");
+        setError(
+          err.response?.data?.message || "Failed to load payment records",
+        );
       }
     };
 
@@ -97,9 +99,11 @@ const PaymentRecords = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://kibou-registry-1.onrender.com/api/payments/${id}`);
+      await axios.delete(
+        `https://kibou-registry-1.onrender.com/api/payments/${id}`,
+      );
       setPayments((prevPayments) =>
-        prevPayments.filter((payment) => payment.id !== id)
+        prevPayments.filter((payment) => payment.id !== id),
       );
     } catch (err) {
       console.error("Error deleting payment:", err.response || err.message);
@@ -113,10 +117,12 @@ const PaymentRecords = () => {
         const response = await axios.put(
           `https://kibou-registry-1.onrender.com/api/payments/${editingPayment.id}`,
           editingPayment,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
         setPayments((prevPayments) =>
-          prevPayments.map((p) => (p.id === editingPayment.id ? response.data : p))
+          prevPayments.map((p) =>
+            p.id === editingPayment.id ? response.data : p,
+          ),
         );
       } catch (err) {
         console.error("Error updating payment:", err.response || err.message);
@@ -302,7 +308,9 @@ const PaymentRecords = () => {
                         <strong>Total:</strong> ₦{payment.totalAmount}
                       </p>
                       <button onClick={() => handleEdit(payment)}>Edit</button>
-                      <button onClick={() => handleDelete(payment.id)}>Delete</button>
+                      <button onClick={() => handleDelete(payment.id)}>
+                        Delete
+                      </button>
                     </div>
                   </>
                 )}

@@ -1,13 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {
-  TextField,
-  Button,
-  Grid,
-  Typography,
-  Box,
-  Paper,
-} from "@mui/material";
+import { TextField, Button, Grid, Typography, Box, Paper } from "@mui/material";
 
 const Payment = () => {
   const [formData, setFormData] = useState({
@@ -66,7 +59,7 @@ const Payment = () => {
             "Content-Type": "application/json",
           },
           maxBodyLength: Infinity,
-        }
+        },
       );
 
       console.log("API Response:", response.data);
