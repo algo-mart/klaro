@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
-  Box,
-  Typography,
-  Container,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  CircularProgress,
+  Alert,
+  Box,
+  Typography,
 } from "@mui/material";
+import apiService from "../services/api"; // Ensure correct import
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -21,23 +22,24 @@ const Events = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const config = {
-          method: "get",
-          maxBodyLength: Infinity,
-          url: "/api/events?searchPhrase=&pageSize=10&pageNumber=0&eventType=REGULAR",
-          headers: {},
-        };
+        console.log("Fetching events...");
 
-        const response = await axios.request(config);
-        console.log("API Response:", response.data);
+        // Assuming authentication is needed (update as per your setup)
+        const token = localStorage.getItem("authToken") || ""; 
+        const data = await apiService.events.getAll(token);
 
-        // Extract events from the content array
-        const eventsData = response.data.content || [];
-        setEvents(eventsData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-        setError("Failed to load events");
+        console.log("Events received:", data);
+
+        if (Array.isArray(data)) {
+          setEvents(data);
+          setError(null);
+        } else {
+          setError("Unexpected response format from the server.");
+        }
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError(err.message || "Could not fetch events. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
@@ -45,96 +47,63 @@ const Events = () => {
     fetchEvents();
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
-      <Box sx={{ p: 3, minHeight: "calc(100vh - 100px)" }}>
-        <Typography>Loading events...</Typography>
-      </Box>
-    );
-
-  if (error)
-    return (
-      <Box sx={{ p: 3, minHeight: "calc(100vh - 100px)" }}>
-        <Typography color="error">Error: {error}</Typography>
-      </Box>
-    );
-
-  if (!events.length) {
-    return (
-      <Box sx={{ p: 3, minHeight: "calc(100vh - 100px)" }}>
-        <Typography>No events found</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
       </Box>
     );
   }
 
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return "Date not available";
-      }
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch (e) {
-      return "Date not available";
-    }
-  };
+  if (error) {
+    return (
+      <Box m={3}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <Box m={3}>
+        <Alert severity="info">No events found.</Alert>
+      </Box>
+    );
+  }
 
   return (
-    <Container
-      sx={{
-        mt: 4,
-        mb: 4,
-        minHeight: "calc(100vh - 100px)", // Subtract header/navigation height
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Typography variant="h4" sx={{ mb: 3 }}></Typography>
-      <TableContainer
-        component={Paper}
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Table sx={{ minWidth: 650 }} aria-label="events table">
+    <Box m={3}>
+      <Typography variant="h4" gutterBottom>
+        Events
+      </Typography>
+
+      <TableContainer component={Paper}>
+        <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#3b82f6" }}>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                Event ID
-              </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                Event Type
-              </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                Event Date
-              </TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                Event Venue
-              </TableCell>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Venue</TableCell>
+              <TableCell>Category</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {events.map((event) => (
-              <TableRow
-                key={event.eventId}
-                sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f8fafc" } }}
-              >
-                <TableCell>{event.eventId}</TableCell>
-                <TableCell>{event.eventType}</TableCell>
-                <TableCell>{formatDate(event.date)}</TableCell>
-                <TableCell>{event.venue || "TBA"}</TableCell>
+              <TableRow key={event.eventId || event.id}>
+                <TableCell>{event.eventId || event.id}</TableCell>
+                <TableCell>
+                  {event.date ? new Date(event.date).toLocaleDateString() : "N/A"}
+                </TableCell>
+                <TableCell>{event.eventType || "N/A"}</TableCell>
+                <TableCell>{event.venue || "N/A"}</TableCell>
+                <TableCell>{event.category || "-"}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    </Container>
+    </Box>
   );
 };
 

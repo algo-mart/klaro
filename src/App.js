@@ -12,8 +12,7 @@ import "./styles/theme.css";
 import "./styles/layout.css";
 
 // Import React Icons
-import { MdDashboard, MdPayment, MdAdd, MdLogout } from "react-icons/md";
-import { BiCalendarCheck } from "react-icons/bi";
+import { MdDashboard, MdPayment, MdAdd, MdLogout, MdGroups } from "react-icons/md";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { BsCalendarEvent } from "react-icons/bs";
 
@@ -24,10 +23,11 @@ import Navbar from "./components/Navbar/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
 import Payment from "./pages/Payment";
+import User from "./pages/user";
 import Monthly from "./pages/Monthly";
 import Addparticipants from "./pages/Addparticipants";
 import Login from "./pages/Login";
-import Events from "./pages/Events";
+import Events from "./pages/Events.js";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -57,9 +57,11 @@ const PageTitle = () => {
       case "/monthly":
         return "Monthly Review";
       case "/addparticipants":
-        return "Add New Participants";
+        return "Create New User";
       case "/events":
-        return "Events";
+        return "List of all events";
+      case "/user":
+        return "List of all users";
       default:
         return "";
     }
@@ -117,25 +119,30 @@ function AppContent() {
   const navLinks = [
     { path: "/dashboard", name: "Dashboard", icon: <MdDashboard size={24} /> },
     {
-      path: "/attendance",
-      name: "Attendance",
-      icon: <BiCalendarCheck size={24} />,
+      path: "/addparticipants",
+      name: "Create New User",
+      icon: <MdAdd size={24} />,
     },
-    { path: "/payment", name: "Daily Payment", icon: <MdPayment size={24} /> },
     {
-      path: "/monthly",
-      name: "Monthly Review",
-      icon: <IoStatsChartSharp size={24} />,
+      path: "/user",
+      name: "Users",
+      icon: <MdGroups size={24} />,
     },
     {
       path: "/events",
       name: "Events",
       icon: <BsCalendarEvent size={24} />,
     },
+    // {
+    //   path: "/attendance",
+    //   name: "Attendance",
+    //   icon: <BiCalendarCheck size={24} />,
+    // },
+    { path: "/payment", name: "Daily Payment", icon: <MdPayment size={24} /> },
     {
-      path: "/addparticipants",
-      name: "Add Participants",
-      icon: <MdAdd size={24} />,
+      path: "/monthly",
+      name: "Monthly Review",
+      icon: <IoStatsChartSharp size={24} />,
     },
   ];
 
@@ -255,6 +262,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Addparticipants />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user"
+              element={
+                <ProtectedRoute>
+                  <User />
                 </ProtectedRoute>
               }
             />

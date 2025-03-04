@@ -70,18 +70,17 @@ const Addparticipants = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
     setSuccess("");
 
     if (!validateForm()) {
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
-    console.log(formData);
     try {
-      let participantData = JSON.stringify({
+      let participantData = {
         name: formData.name,
         category: formData.category,
         contact_info: {
@@ -89,18 +88,11 @@ const Addparticipants = () => {
           phone: formData.phoneNumber,
           address: formData.address,
         },
-        event: {
-          eventId: 7,
-        },
-      });
+      };
 
-      const response = await apiService.participants.create(participantData);
+      await apiService.participants.create(participantData);
 
-      console.log(response);
-
-      setSuccess("Participant added successfully!");
-
-      // Clear form
+      setSuccess("User added successfully!");
       setFormData({
         name: "",
         phoneNumber: "",
@@ -109,13 +101,13 @@ const Addparticipants = () => {
         category: "MEMBER",
       });
 
-      // Navigate after a short delay
+      // Navigate to the users page after successful submission
       setTimeout(() => {
-        // navigate("/attendance");
-      }, 1500);
+        navigate("/user");
+      }, 2000);
     } catch (err) {
       console.error("Form submission error:", err);
-      setError(err.message || "Failed to add participant. Please try again.");
+      setError(err.message || "Failed to Ceate user. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -140,9 +132,9 @@ const Addparticipants = () => {
           mx: "auto",
         }}
       >
-        <Typography variant="h5" component="h1" gutterBottom>
-          Add New Participant
-        </Typography>
+        {/* <Typography variant="h5" component="h1" gutterBottom>
+          Create New User
+        </Typography> */}
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -254,7 +246,7 @@ const Addparticipants = () => {
                 fullWidth
                 disabled={loading}
               >
-                {loading ? "Adding..." : "Add Participant"}
+                {loading ? "Creating..." : "Create User"}
               </Button>
             </Grid>
           </Grid>
