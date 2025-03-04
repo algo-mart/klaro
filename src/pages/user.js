@@ -47,7 +47,7 @@ const User = () => {
     phone: '',
     email: '',
     address: '',
-    category: 'Member',
+    category: 'MEMBER',
     contactInfoId: null
   });
   const [editLoading, setEditLoading] = useState(false);
@@ -76,7 +76,7 @@ const User = () => {
 
       while (pageNumber < totalPages) {
         const response = await axios.get(
-          `https://kibou-registry-1.onrender.com/api/users?pageSize=10&pageNumber=${pageNumber}&category=${category}`,
+          `/api/users?pageSize=10&pageNumber=${pageNumber}&category=${category}`,
           {
             headers: {
               'Accept': 'application/json',
@@ -474,3 +474,6 @@ const User = () => {
       </Menu>
     </Box>
   );
+};
+
+export default User;
