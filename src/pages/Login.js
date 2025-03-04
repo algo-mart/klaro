@@ -1,21 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import axios from 'axios';
 import "./Login.css";
-
-// Fallback function for browsers that don't support crypto.randomUUID()
-const generateSecureId = () => {
-  if (window.crypto && window.crypto.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-
-  // Fallback to a more secure random string generation
-  const array = new Uint8Array(16);
-  window.crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-};
 
 const Login = () => {
   const navigate = useNavigate();
@@ -73,20 +60,21 @@ const Login = () => {
     }
 
     try {
-      // In a real app, this would be an API call with proper encryption
-      const mockUser = {
-        id: generateSecureId(), // Using secure ID generation
+      // Mock login response since we don't have a backend yet
+      const mockUserData = {
+        id: 1, // Mock user ID
         email: formData.email,
-        role: formData.role,
-        fullName: formData.fullName,
-        lastLogin: new Date().toISOString(),
+        role: 'user',
+        fullName: formData.email.split('@')[0], // Use email username as fullName
+        token: 'mock-token-' + Date.now() // Mock token
       };
 
-      login(mockUser);
+      console.log('[DEBUG] Login response:', mockUserData);
+      login(mockUserData);
       navigate("/dashboard", { replace: true });
     } catch (err) {
+      console.error('[DEBUG] Auth error:', err);
       setError("Authentication failed. Please try again.");
-      console.error("Auth error:", err);
     }
   };
 

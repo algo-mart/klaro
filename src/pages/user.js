@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   Table,
   TableBody,
@@ -7,22 +7,56 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
-  CircularProgress,
+  Button,
   Box,
   Typography,
+  Modal,
+  TextField,
+  Select,
+  MenuItem,
+  CircularProgress,
+  Alert,
+  Stack,
   IconButton,
+  Menu,
+  ListItemIcon,
+  ListItemText,
   ToggleButtonGroup,
-  ToggleButton,
-  TablePagination
+  ToggleButton
 } from '@mui/material';
-import { MoreVert as MoreVertIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  MoreVert as MoreVertIcon,
+  Edit as EditIcon
+} from '@mui/icons-material';
+import axios from 'axios';
 
 const User = () => {
+  const { user, isAuthenticated } = useAuth();
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    address: '',
+    category: 'Member',
+    contactInfoId: null
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
+  const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+  const [success, setSuccess] = useState(null);
   const [category, setCategory] = useState('MEMBER');
 
   const handleCategoryChange = (event, newCategory) => {
@@ -46,7 +80,8 @@ const User = () => {
           {
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user?.token}`
             }
           }
         );
@@ -62,9 +97,8 @@ const User = () => {
             id: user.userId,
             name: user.name,
             category: category,
-            email: user.email,
-            phone: user.phone,
-            contactInfo: user.contactInfo
+            contactInfo: user.contactInfo,
+            status: 'Absent'
           }))
         ];
 
@@ -80,11 +114,134 @@ const User = () => {
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, [user, category]);
 
   useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+    if (isAuthenticated()) {
+      fetchParticipants();
+    }
+  }, [fetchParticipants, isAuthenticated]);
+
+  useEffect(() => {
+    if (selectedParticipant) {
+      setEditData({
+        fullName: selectedParticipant.name,
+        phone: selectedParticipant.contactInfo?.phone || '',
+        email: selectedParticipant.contactInfo?.email || '',
+        address: selectedParticipant.contactInfo?.address || '',
+        category: selectedParticipant.category,
+        contactInfoId: selectedParticipant.contactInfo?.id || null
+      });
+    }
+  }, [selectedParticipant]);
+
+  const handleMenuOpen = (event, participant) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedParticipant(participant);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    setEditModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
+    if (selectedParticipant) {
+      setDeleteConfirmModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleSave = async () => {
+    try {
+      setEditLoading(true);
+      setEditError(null);
+
+      if (!selectedParticipant?.id) {
+        throw new Error('Participant ID is missing');
+      }
+
+      if (!isAuthenticated()) {
+        throw new Error('You are not authenticated. Please log in again.');
+      }
+
+      const payload = {
+        name: editData.fullName,
+        category: editData.category.toUpperCase(),
+        contactInfo: {
+          phone: editData.phone,
+          email: editData.email,
+          address: editData.address
+        }
+      };
+
+      console.log('[DEBUG] Starting update with:', {
+        participantId: selectedParticipant.id,
+        payload: JSON.stringify(payload, null, 2),
+        isAuthenticated: isAuthenticated()
+      });
+
+      await axios.put(
+        `/api/users/${selectedParticipant.id}`,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+          }
+        }
+      );
+
+      console.log('[DEBUG] Update successful');
+      setEditModalOpen(false);
+      fetchParticipants();
+    } catch (error) {
+      console.error('[DEBUG] Update failed:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers
+        }
+      });
+
+      let errorMessage = 'Failed to update participant';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setEditError(errorMessage);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setEditModalOpen(false);
+    setSelectedParticipant(null);
+    setEditError(null);
+  };
+
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
+  };
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -93,7 +250,7 @@ const User = () => {
         <Typography variant="h4" gutterBottom>
           Users
         </Typography>
-        
+
         <ToggleButtonGroup
           value={category}
           exclusive
@@ -113,42 +270,11 @@ const User = () => {
         </ToggleButtonGroup>
       </Box>
 
-      {/* Table Section with Overlay Loading */}
+      {/* Table Section - Shows loading state */}
       <Box sx={{ position: 'relative', minHeight: '200px' }}>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#1a2233' }}>
-                <TableCell sx={{ color: 'white' }}>ID</TableCell>
-                <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                <TableCell sx={{ color: 'white' }}>Category</TableCell>
-                <TableCell sx={{ color: 'white' }}>Email</TableCell>
-                <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-                <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {participants.map((participant) => (
-                <TableRow key={participant.id}>
-                  <TableCell>{participant.id}</TableCell>
-                  <TableCell>{participant.name}</TableCell>
-                  <TableCell>{participant.category}</TableCell>
-                  <TableCell>{participant.contactInfo?.email || participant.email || ''}</TableCell>
-                  <TableCell>{participant.contactInfo?.phone || participant.phone || ''}</TableCell>
-                  <TableCell>
-                    <IconButton>
-                      <MoreVertIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
         {loading && (
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               position: 'absolute',
               top: 0,
               left: 0,
@@ -165,22 +291,186 @@ const User = () => {
           </Box>
         )}
 
-        {error && (
-          <Box sx={{ mt: 2 }}>
+        {error ? (
+          <Box sx={{ p: 2 }}>
             <Typography color="error">{error}</Typography>
           </Box>
+        ) : (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#1a2233' }}>
+                  <TableCell sx={{ color: 'white' }}>ID</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Category</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Email</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Phone</TableCell>
+                  <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {participants.map((participant) => (
+                  <TableRow key={participant.id}>
+                    <TableCell>{participant.id}</TableCell>
+                    <TableCell>{participant.name}</TableCell>
+                    <TableCell>{participant.category}</TableCell>
+                    <TableCell>{participant.contactInfo?.email || participant.email || ''}</TableCell>
+                    <TableCell>{participant.contactInfo?.phone || participant.phone || ''}</TableCell>
+                    <TableCell>
+                      <IconButton onClick={(e) => handleMenuOpen(e, participant)}>
+                        <MoreVertIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </Box>
+
+      {/* Edit Modal */}
+      <Modal
+        open={editModalOpen}
+        onClose={handleModalClose}
+        aria-labelledby="edit-participant-modal"
+      >
+        <Box sx={{ ...modalStyle, width: 500 }}>
+          <Typography variant="h6" gutterBottom>
+            Edit Participant
+          </Typography>
+
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Root level fields */}
+            <TextField
+              label="Full Name"
+              value={editData.fullName}
+              onChange={(e) => setEditData({...editData, fullName: e.target.value})}
+              fullWidth
+              required
+            />
+
+            <Select
+              value={editData.category}
+              onChange={(e) => setEditData({...editData, category: e.target.value})}
+              fullWidth
+              required
+            >
+              <MenuItem value="MEMBER">Member</MenuItem>
+              <MenuItem value="INTERN">Intern</MenuItem>
+              <MenuItem value="SENIOR_STAFF">Senior Staff</MenuItem>
+            </Select>
+
+            {/* Contact Info Section */}
+            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+              Contact Information
+            </Typography>
+
+            <Box sx={{
+              bgcolor: 'background.paper',
+              p: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              <TextField
+                label="Email"
+                type="email"
+                value={editData.email}
+                onChange={(e) => setEditData({...editData, email: e.target.value})}
+                fullWidth
+                required
+              />
+
+              <TextField
+                label="Phone"
+                value={editData.phone}
+                onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                fullWidth
+                required
+              />
+
+              <TextField
+                label="Address"
+                multiline
+                rows={3}
+                value={editData.address}
+                onChange={(e) => setEditData({...editData, address: e.target.value})}
+                fullWidth
+              />
+            </Box>
+
+            {editError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {editError}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleModalClose}
+                disabled={editLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={editLoading}
+              >
+                {editLoading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
 
       <TablePagination
         component="div"
         count={totalElements}
-        rowsPerPage={10}
-        page={0}
-        onPageChange={() => {}}
+        page={page}
+        onPageChange={(event, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(event) => setRowsPerPage(parseInt(event.target.value, 10))}
+        rowsPerPageOptions={[5, 10, 25, 50]}
       />
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
     </Box>
   );
-};
-
-export default User;
