@@ -57,11 +57,11 @@ const PageTitle = () => {
       case "/monthly":
         return "Monthly Review";
       case "/addparticipants":
-        return "Create New User";
+        return "Create User";
       case "/events":
-        return "List of all events";
+        return "Events";
       case "/user":
-        return "List of all users";
+        return "Users";
       default:
         return "";
     }
@@ -70,7 +70,7 @@ const PageTitle = () => {
   return (
     <div className="page-header">
       <h1 className="page-title">
-        <span className="title-icon">📄</span>
+        {/* <span className="title-icon">📄</span> */}
         {getPageTitle()}
       </h1>
     </div>

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import axios from 'axios';
 import {
   TextField,
   Typography,
@@ -12,10 +14,10 @@ import {
   Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import apiService from "../services/api";
 
 const Addparticipants = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -36,62 +38,48 @@ const Addparticipants = () => {
     }));
   };
 
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      setError("Name is required");
-      return false;
-    }
-
-    if (!formData.phoneNumber.trim()) {
-      setError("Phone number is required");
-      return false;
-    }
-
-    // Validate phone number format (at least 10 digits)
-    const phoneRegex = /^\d{10,}$/;
-    if (!phoneRegex.test(formData.phoneNumber.trim())) {
-      setError("Please enter a valid phone number (at least 10 digits)");
-      return false;
-    }
-
-    if (!formData.email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email.trim())) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
-    return true;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
 
-    if (!validateForm()) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      let participantData = {
+      if (!isAuthenticated()) {
+        throw new Error('You are not authenticated. Please log in again.');
+      }
+
+      if (!user?.token) {
+        throw new Error('Authentication token is missing');
+      }
+
+      const payload = {
         name: formData.name,
-        category: formData.category,
+        category: formData.category.toUpperCase(),
         contact_info: {
           email: formData.email.toLowerCase(),
           phone: formData.phoneNumber,
-          address: formData.address,
-        },
+          address: formData.address
+        }
       };
 
-      await apiService.participants.create(participantData);
+      console.log('[DEBUG] Sending payload:', JSON.stringify(payload, null, 2));
+      console.log('[DEBUG] Auth token present:', !!user?.token);
 
+      const response = await axios.post(
+        'https://kibou-registry-1.onrender.com/api/users',
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+          }
+        }
+      );
+
+      console.log('[DEBUG] Create successful:', response.data);
+      
       setSuccess("User added successfully!");
       setFormData({
         name: "",
@@ -100,101 +88,108 @@ const Addparticipants = () => {
         address: "",
         category: "MEMBER",
       });
-
-      // Navigate to the users page after successful submission
+      
       setTimeout(() => {
         navigate("/user");
       }, 2000);
     } catch (err) {
-      console.error("Form submission error:", err);
-      setError(err.message || "Failed to Ceate user. Please try again.");
+      console.error('[DEBUG] Error details:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        headers: err.response?.headers,
+        message: err.message
+      });
+
+      if (err.response?.status === 401) {
+        setError('Authentication failed. Please log in again.');
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        setError(err.response?.data?.message || err.message || "Failed to add user");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
-      component="main"
-      sx={{
-        p: 3,
-        minHeight: "calc(80vh)", // Subtract header/navigation height
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      <Paper
-        elevation={3}
-        sx={{
-          p: 4,
-          maxWidth: 600,
-          width: "100%",
-          mx: "auto",
-        }}
-      >
-        {/* <Typography variant="h5" component="h1" gutterBottom>
-          Create New User
-        </Typography> */}
+    <Box sx={{ p: 3 }}>
+      {/* <Typography variant="h4" gutterBottom>
+        Add New User
+      </Typography> */}
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success}
-          </Alert>
-        )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
 
+      <Paper sx={{ 
+        p: 3, 
+        maxWidth: 400, 
+        mx: 'auto',
+        bgcolor: '#1a2233',
+        color: 'white',
+        '& .MuiInputLabel-root': {
+          color: 'white'
+        },
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: 'rgba(255, 255, 255, 0.23)'
+          },
+          '&:hover fieldset': {
+            borderColor: 'rgba(255, 255, 255, 0.5)'
+          }
+        },
+        '& .MuiInputBase-input': {
+          color: 'white'
+        },
+        '& .MuiFormControlLabel-label': {
+          color: 'white'
+        },
+        '& .MuiRadio-root': {
+          color: 'white'
+        }
+      }}>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField
-                required
                 fullWidth
                 label="Full Name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                error={Boolean(error && error.includes("Name"))}
-                helperText={error && error.includes("Name") ? error : ""}
+                required
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
-                required
                 fullWidth
                 label="Phone Number"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleChange}
-                error={Boolean(error && error.includes("phone"))}
-                helperText={
-                  error && error.includes("phone")
-                    ? error
-                    : "Enter at least 10 digits"
-                }
+                required
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
-                required
                 fullWidth
+                type="email"
                 label="Email"
                 name="email"
-                type="email"
                 value={formData.email}
                 onChange={handleChange}
-                error={Boolean(error && error.includes("email"))}
-                helperText={
-                  error && error.includes("email")
-                    ? error
-                    : "e.g., name@example.com"
-                }
+                required
               />
             </Grid>
 
@@ -203,10 +198,11 @@ const Addparticipants = () => {
                 fullWidth
                 label="Address"
                 name="address"
-                multiline
-                rows={3}
                 value={formData.address}
                 onChange={handleChange}
+                multiline
+                rows={3}
+                required
               />
             </Grid>
 
@@ -215,10 +211,10 @@ const Addparticipants = () => {
                 Category
               </Typography>
               <RadioGroup
+                row
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                row
               >
                 <FormControlLabel
                   value="MEMBER"
@@ -226,14 +222,14 @@ const Addparticipants = () => {
                   label="Member"
                 />
                 <FormControlLabel
-                  value="SENIOR_STAFF"
-                  control={<Radio />}
-                  label="Senior Staff"
-                />
-                <FormControlLabel
                   value="INTERN"
                   control={<Radio />}
                   label="Intern"
+                />
+                <FormControlLabel
+                  value="SENIOR_STAFF"
+                  control={<Radio />}
+                  label="Senior Staff"
                 />
               </RadioGroup>
             </Grid>
@@ -242,11 +238,17 @@ const Addparticipants = () => {
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
                 fullWidth
                 disabled={loading}
+                sx={{
+                  bgcolor: 'white',
+                  color: '#1a2233',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  }
+                }}
               >
-                {loading ? "Creating..." : "Create User"}
+                {loading ? "Adding..." : "Add User"}
               </Button>
             </Grid>
           </Grid>

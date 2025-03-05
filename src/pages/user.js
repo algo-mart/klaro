@@ -26,11 +26,11 @@ import {
   ToggleButtonGroup,
   ToggleButton
 } from '@mui/material';
-import {
+import { 
   Add as AddIcon,
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
-  Edit as EditIcon
+  Edit as EditIcon 
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -47,7 +47,7 @@ const User = () => {
     phone: '',
     email: '',
     address: '',
-    category: 'MEMBER',
+    category: 'Member',
     contactInfoId: null
   });
   const [editLoading, setEditLoading] = useState(false);
@@ -76,13 +76,14 @@ const User = () => {
 
       while (pageNumber < totalPages) {
         const response = await axios.get(
-          `/api/users?pageSize=10&pageNumber=${pageNumber}&category=${category}`,
+          `https://kibou-registry-1.onrender.com/api/users?pageSize=10&pageNumber=${pageNumber}&category=${category}`,
           {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${user?.token}`
-            }
+            },
+            baseURL: 'https://kibou-registry-1.onrender.com'
           }
         );
 
@@ -160,7 +161,7 @@ const User = () => {
     try {
       setEditLoading(true);
       setEditError(null);
-
+      
       if (!selectedParticipant?.id) {
         throw new Error('Participant ID is missing');
       }
@@ -172,30 +173,31 @@ const User = () => {
       const payload = {
         name: editData.fullName,
         category: editData.category.toUpperCase(),
-        contactInfo: {
+        contact_info: {
           phone: editData.phone,
           email: editData.email,
           address: editData.address
         }
       };
 
-      console.log('[DEBUG] Starting update with:', {
-        participantId: selectedParticipant.id,
-        payload: JSON.stringify(payload, null, 2),
-        isAuthenticated: isAuthenticated()
+      console.log('[DEBUG] Sending payload:', {
+        url: `https://kibou-registry-1.onrender.com/api/users/${selectedParticipant.id}`,
+        method: 'PUT',
+        payload,
+        token: user?.token ? 'present' : 'missing'
       });
 
       await axios.put(
-        `/api/users/${selectedParticipant.id}`,
+        `https://kibou-registry-1.onrender.com/api/users/${selectedParticipant.id}`,
         payload,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.token}`
+            'Authorization': `Bearer ${user?.token}`
           }
         }
       );
-
+      
       console.log('[DEBUG] Update successful');
       setEditModalOpen(false);
       fetchParticipants();
@@ -211,14 +213,14 @@ const User = () => {
           headers: error.config?.headers
         }
       });
-
+      
       let errorMessage = 'Failed to update participant';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-
+      
       setEditError(errorMessage);
     } finally {
       setEditLoading(false);
@@ -247,10 +249,10 @@ const User = () => {
     <Box sx={{ width: '100%', p: 3 }}>
       {/* Header and Toggle Buttons - Always visible */}
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="h4" gutterBottom>
+        {/* <Typography variant="h4" gutterBottom>
           Users
-        </Typography>
-
+        </Typography> */}
+        
         <ToggleButtonGroup
           value={category}
           exclusive
@@ -273,8 +275,8 @@ const User = () => {
       {/* Table Section - Shows loading state */}
       <Box sx={{ position: 'relative', minHeight: '200px' }}>
         {loading && (
-          <Box
-            sx={{
+          <Box 
+            sx={{ 
               position: 'absolute',
               top: 0,
               left: 0,
@@ -339,7 +341,7 @@ const User = () => {
           <Typography variant="h6" gutterBottom>
             Edit Participant
           </Typography>
-
+          
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Root level fields */}
             <TextField
@@ -349,7 +351,7 @@ const User = () => {
               fullWidth
               required
             />
-
+            
             <Select
               value={editData.category}
               onChange={(e) => setEditData({...editData, category: e.target.value})}
@@ -365,8 +367,8 @@ const User = () => {
             <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
               Contact Information
             </Typography>
-
-            <Box sx={{
+            
+            <Box sx={{ 
               bgcolor: 'background.paper',
               p: 2,
               border: '1px solid',
@@ -384,7 +386,7 @@ const User = () => {
                 fullWidth
                 required
               />
-
+              
               <TextField
                 label="Phone"
                 value={editData.phone}
@@ -392,7 +394,7 @@ const User = () => {
                 fullWidth
                 required
               />
-
+              
               <TextField
                 label="Address"
                 multiline
@@ -410,15 +412,15 @@ const User = () => {
             )}
 
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
-              <Button
-                variant="outlined"
+              <Button 
+                variant="outlined" 
                 onClick={handleModalClose}
                 disabled={editLoading}
               >
                 Cancel
               </Button>
-              <Button
-                variant="contained"
+              <Button 
+                variant="contained" 
                 onClick={handleSave}
                 disabled={editLoading}
               >
