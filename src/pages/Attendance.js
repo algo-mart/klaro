@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from 'axios';
+import { useParams, useLocation } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -32,6 +33,8 @@ import { useAuth } from "../context/AuthContext";
 
 const Attendance = () => {
   const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { eventId, venue, eventType } = location.state || {}; // Access eventId, venue, and eventType
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,96 +59,9 @@ const Attendance = () => {
   });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState(null);
-
-  const fetchParticipants = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const categories = ['INTERN', 'MEMBER', 'SENIOR_STAFF'];
-      
-      // Fetch data from all categories in parallel
-      const responses = await Promise.all(
-        categories.map(category =>
-          axios.get(
-            `/api/participants?pageSize=10&pageNumber=0&category=${category}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`
-              }
-            }
-          )
-        )
-      );
-
-      // Map and combine the responses
-      const allParticipants = responses.flatMap((response, index) => {
-        const category = categories[index];
-        return response.data.content.map(participant => ({
-          id: participant.participantId,
-          name: participant.name,
-          category: category,
-          email: participant.contactInfo.email,
-          phone: participant.contactInfo.phone,
-          address: participant.contactInfo.address,
-          status: 'Absent'
-        }));
-      });
-
-      // Sort participants by ID in ascending order
-      const sortedParticipants = [...allParticipants].sort((a, b) => {
-        // Convert IDs to numbers to ensure proper numeric sorting
-        const idA = Number(a.id);
-        const idB = Number(b.id);
-        return idA - idB;
-      });
-
-      console.log('[DEBUG] Fetched and sorted participants:', {
-        totalParticipants: sortedParticipants.length,
-        firstId: sortedParticipants[0]?.id,
-        lastId: sortedParticipants[sortedParticipants.length - 1]?.id,
-        participants: sortedParticipants
-      });
-
-      // Calculate total elements across all categories
-      const totalElements = responses.reduce(
-        (sum, response) => sum + (response.data.totalElements || 0),
-        0
-      );
-
-      setParticipants(sortedParticipants);
-      setTotalElements(totalElements);
-    } catch (error) {
-      console.error('[DEBUG] Failed to fetch participants:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data
-      });
-      setError('Failed to fetch participants');
-      setParticipants([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user.token]);
-
-  useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
-
-  useEffect(() => {
-    if (selectedParticipant) {
-      setEditData({
-        fullName: selectedParticipant.name,
-        phone: selectedParticipant.contactInfo?.phone || '',
-        email: selectedParticipant.contactInfo?.email || '',
-        address: selectedParticipant.contactInfo?.address || '',
-        category: selectedParticipant.category,
-        contactInfoId: selectedParticipant.contactInfo?.id
-      });
-    }
-  }, [selectedParticipant]);
+  const [eventDetails, setEventDetails] = useState(null);
+  const [eventLoading, setEventLoading] = useState(true);
+  const [eventError, setEventError] = useState("");
 
   const fetchAttendanceForDate = async (date) => {
     try {
@@ -154,7 +70,7 @@ const Attendance = () => {
       
       // First get the attendance records for the date
       const attendanceResponse = await axios.get(
-        `/api/attendance?date=${date}&eventId=1`
+        `/api/attendance?date=${date}&eventId=${eventId}`
       );
       
       console.log('Raw Attendance Response:', attendanceResponse.data);
@@ -192,6 +108,69 @@ const Attendance = () => {
     }
   };
 
+  useEffect(() => {
+    if (selectedParticipant) {
+      setEditData({
+        fullName: selectedParticipant.name,
+        phone: selectedParticipant.contactInfo?.phone || '',
+        email: selectedParticipant.contactInfo?.email || '',
+        address: selectedParticipant.contactInfo?.address || '',
+        category: selectedParticipant.category,
+        contactInfoId: selectedParticipant.contactInfo?.id
+      });
+    }
+  }, [selectedParticipant]);
+
+  useEffect(() => {
+  const fetchEventData = async () => {
+    if (!venue || !eventType) return; // Ensure venue and eventType exist
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Fetch event details
+      const response = await axios.get(
+        `https://kibou-registry-1.onrender.com/api/events/details?searchPhrase=${venue}&pageSize=10&pageNumber=0&eventType=${eventType}`
+      );
+
+      console.log("Fetched Event Data:", response.data);
+
+      if (response.data.content.length === 0) {
+        setError("No event data found.");
+        setParticipants([]);
+        return;
+      }
+
+      // Extract users from the first event in content
+      const eventData = response.data.content[0];
+      setEventDetails(eventData);
+
+      // Transform users to match participants structure
+      const formattedParticipants = eventData.users.map((user) => ({
+        id: user.userId,
+        name: user.name,
+        category: user.category,
+        email: user.contactInfo?.email || '',
+        phone: user.contactInfo?.phone || '',
+        address: user.contactInfo?.address || '',
+        status: "Absent", // Default status until attendance is recorded
+      }));
+
+      setParticipants(formattedParticipants);
+      setTotalElements(formattedParticipants.length);
+
+    } catch (error) {
+      console.error("Error fetching event data:", error);
+      setError("Failed to fetch event data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchEventData();
+}, [venue, eventType]);// Only depend on venue and eventType
+
   const handleSubmit = async () => {
     if (!selectedDate) {
       setError("Please select a date first");
@@ -216,7 +195,7 @@ const Attendance = () => {
           participantId: participant.id,
           date: selectedDate,
           status: participant.status.toUpperCase(),
-          eventId: 1
+          eventId: eventId
         };
         console.log(`Recording attendance for ${participant.name}:`, data);
         
@@ -392,7 +371,6 @@ const Attendance = () => {
 
       console.log('[DEBUG] Update successful:', response.data);
       setEditModalOpen(false);
-      fetchParticipants();
     } catch (error) {
       console.error('[DEBUG] Update failed:', {
         message: error.message,
@@ -463,7 +441,10 @@ const Attendance = () => {
       >
         {error}
         <Button 
-          onClick={fetchParticipants} 
+          onClick={() => {
+            setError("");
+            setSuccess("");
+          }} 
           color="error" 
           variant="contained" 
           sx={{ marginLeft: 2 }}
@@ -489,7 +470,10 @@ const Attendance = () => {
           No participants found
         </Typography>
         <Button 
-          onClick={fetchParticipants} 
+          onClick={() => {
+            setError("");
+            setSuccess("");
+          }} 
           color="primary" 
           variant="contained" 
           sx={{ marginTop: 2 }}
@@ -497,6 +481,35 @@ const Attendance = () => {
           Refresh
         </Button>
       </Box>
+    );
+  }
+
+  if (eventLoading) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <Alert 
+        severity="error" 
+        sx={{ 
+          width: '100%', 
+          marginTop: 2 
+        }}
+      >
+        {eventError}
+      </Alert>
     );
   }
 
@@ -788,6 +801,58 @@ const Attendance = () => {
           <ListItemText>Delete</ListItemText>
         </MenuItem>
       </Menu>
+
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Event Details
+        </Typography>
+        {eventDetails && (
+          <table>
+            <thead>
+              <tr>
+                <th>Detail</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Assuming eventDetails is an object with key-value pairs */}
+              {Object.entries(eventDetails).map(([key, value]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Box>
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Participants
+        </Typography>
+        {eventDetails && (
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Contact Info</th>
+              </tr>
+            </thead>
+            <tbody>
+              {eventDetails.users.map(user => (
+                <tr key={user.userId}>
+                  <td>{user.name}</td>
+                  <td>
+                    <div>Email: {user.contactInfo.email}</div>
+                    <div>Phone: {user.contactInfo.phone}</div>
+                    <div>Address: {user.contactInfo.address}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Box>
     </Box>
   );
 };
