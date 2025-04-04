@@ -27,6 +27,8 @@ import {
   MenuItem,
   Grid,
   IconButton,
+  Checkbox,
+  Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import apiService from "../services/api";
@@ -50,6 +52,23 @@ const Events = () => {
     venue: "",
     category: "",
   });
+  const [formData, setFormData] = useState({
+    eventType: "REGULAR",
+    date: "",
+    venue: "",
+    category: "MEMBER",
+  });
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [currentEventForAttendance, setCurrentEventForAttendance] = useState(null);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [attendanceError, setAttendanceError] = useState(null);
+  const [eventDetails, setEventDetails] = useState({
+    venue: '',
+    eventType: '',
+    date: ''
+  });
+  const [attendanceMessage, setAttendanceMessage] = useState(null);
   const navigate = useNavigate();
 
   const handleMenuOpen = (event, eventData) => {
@@ -111,12 +130,137 @@ const Events = () => {
         } 
     });
   };
-  const [formData, setFormData] = useState({
-    eventType: "REGULAR",
-    date: "",
-    venue: "",
-    category: "MEMBER",
-  });
+
+  const handleAttendance = (event) => {
+    setCurrentEventForAttendance(selectedEvent);
+    setAttendanceModalOpen(true);
+    if (selectedEvent?.eventId) {
+      fetchEventDetails(selectedEvent.eventId);
+    }
+    handleMenuClose();
+  };
+
+  const fetchEventDetails = async (eventId) => {
+    setLoadingAttendance(true);
+    setAttendanceError(null);
+    try {
+      const response = await fetch(
+        `https://kibou-registry-1.onrender.com/api/events/${eventId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch event details');
+      }
+
+      const data = await response.json();
+      
+      // Store event details
+      setEventDetails({
+        venue: data.venue,
+        eventType: data.eventType,
+        date: new Date(data.date).toLocaleDateString()
+      });
+
+      // Transform the users data into attendance data
+      const formattedData = data.users?.map((user, index) => ({
+        id: index + 1,
+        userId: user.userId,
+        name: user.name,
+        category: user.category,
+        isPresent: false // Initially unchecked
+      })) || [];
+
+      setAttendanceData(formattedData);
+    } catch (error) {
+      setAttendanceError(error.message);
+      console.error('Error fetching event details:', error);
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  const handleAddAttendanceRow = () => {
+    const newId = attendanceData.length + 1;
+    setAttendanceData([...attendanceData, {
+      id: newId,
+      name: '',
+      category: '',
+      isPresent: false
+    }]);
+  };
+
+  const handleAttendanceChange = (id) => {
+    console.log('Checkbox clicked for user ID:', id);
+    setAttendanceData(attendanceData.map(row => {
+      if (row.id === id) {
+        console.log('Updating attendance status for:', row.name, 'to:', !row.isPresent);
+        return { ...row, isPresent: !row.isPresent };
+      }
+      return row;
+    }));
+  };
+
+  const handleSaveAttendance = async () => {
+    try {
+      setCreateLoading(true);
+      setAttendanceMessage(null);
+      const presentUsers = attendanceData.filter(user => user.isPresent);
+      
+      console.log('Submitting attendance for users:', presentUsers);
+      
+      // Create array of promises for each present user
+      const attendancePromises = presentUsers.map(user => {
+        const payload = {
+          userId: user.userId,
+          date: new Date(currentEventForAttendance.date).toISOString().split('T')[0],
+          status: "PRESENT",
+          eventId: currentEventForAttendance.eventId
+        };
+        
+        console.log('Sending attendance payload:', payload);
+
+        return fetch('https://kibou-registry-1.onrender.com/api/attendance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${user?.token}`,
+          },
+          body: JSON.stringify(payload)
+        });
+      });
+
+      // Wait for all attendance records to be submitted
+      const responses = await Promise.all(attendancePromises);
+      console.log('Attendance submission responses:', responses);
+      
+      // Check if any request failed
+      const failedRequests = responses.filter(response => !response.ok);
+      if (failedRequests.length > 0) {
+        throw new Error(`Failed to submit ${failedRequests.length} attendance records`);
+      }
+
+      console.log('Attendance recorded successfully');
+      setAttendanceMessage({ type: 'success', text: 'Attendance recorded successfully!' });
+      
+      setTimeout(() => {
+        setAttendanceModalOpen(false);
+        setAttendanceMessage(null);
+      }, 2000);
+      
+      setError(null);
+    } catch (error) {
+      console.error('Error submitting attendance:', error);
+      setError(error.message || 'Failed to submit attendance');
+      setAttendanceMessage({ type: 'error', text: error.message || 'Failed to submit attendance' });
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const handleOpenModal = () => {
     setOpenModal(true);
@@ -251,6 +395,19 @@ const Events = () => {
     }
   };
 
+  const formatCategory = (category) => {
+    switch (category) {
+      case 'SENIOR_STAFF':
+        return 'Senior Staff';
+      case 'INTERN':
+        return 'Intern';
+      case 'MEMBER':
+        return 'Member';
+      default:
+        return category;
+    }
+  };
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -345,7 +502,7 @@ const Events = () => {
                     </TableCell>
                     <TableCell>{event.eventType || "N/A"}</TableCell>
                     <TableCell>{event.venue || "N/A"}</TableCell>
-                    <TableCell>{event.category || "-"}</TableCell>
+                    <TableCell>{formatCategory(event.category) || "-"}</TableCell>
                     <TableCell>
                       <IconButton onClick={(e) => handleMenuOpen(e, event)}>
                         <MoreVertIcon />
@@ -457,11 +614,11 @@ const Events = () => {
           </ListItemIcon>
           <ListItemText>Delete event</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleRecordAttendance}>
+        <MenuItem onClick={handleAttendance}>
           <ListItemIcon>
             <AssignmentIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Record attendance</ListItemText>
+          <ListItemText primary="Record Attendance" />
         </MenuItem>
       </Menu>
 
@@ -551,6 +708,72 @@ const Events = () => {
             color="primary"
           >
             Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Attendance Modal */}
+      <Dialog
+        open={attendanceModalOpen}
+        onClose={() => setAttendanceModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Record Attendance - {eventDetails.venue}
+        </DialogTitle>
+        <DialogContent>
+          {loadingAttendance ? (
+            <Box display="flex" justifyContent="center" p={3}>
+              <CircularProgress />
+            </Box>
+          ) : attendanceError ? (
+            <Alert severity="error">{attendanceError}</Alert>
+          ) : (
+            <>
+              {attendanceMessage && (
+                <Alert severity={attendanceMessage.type} sx={{ mb: 2 }}>
+                  {attendanceMessage.text}
+                </Alert>
+              )}
+              <TableContainer component={Paper} sx={{ mt: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Category</TableCell>
+                      <TableCell align="center">Present</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {attendanceData.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell>{row.name}</TableCell>
+                        <TableCell>{formatCategory(row.category)}</TableCell>
+                        <TableCell align="center">
+                          <Checkbox
+                            checked={row.isPresent}
+                            onChange={() => handleAttendanceChange(row.id)}
+                            disabled={createLoading}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAttendanceModalOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleSaveAttendance}
+            variant="contained"
+            color="primary"
+            disabled={createLoading || loadingAttendance}
+          >
+            {createLoading ? "Recording..." : "Record Attendance"}
           </Button>
         </DialogActions>
       </Dialog>
