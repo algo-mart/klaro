@@ -12,7 +12,13 @@ import "./styles/theme.css";
 import "./styles/layout.css";
 
 // Import React Icons
-import { MdDashboard, MdPayment, MdAdd, MdLogout, MdGroups } from "react-icons/md";
+import {
+  MdDashboard,
+  MdPayment,
+  MdAdd,
+  MdLogout,
+  MdGroups,
+} from "react-icons/md";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { BsCalendarEvent } from "react-icons/bs";
 
@@ -28,6 +34,7 @@ import Monthly from "./pages/Monthly";
 import Addparticipants from "./pages/Addparticipants";
 import Login from "./pages/Login";
 import Events from "./pages/Events.js";
+import PaymentSummary from "./pages/PaymentSummary.js";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -62,6 +69,8 @@ const PageTitle = () => {
         return "Events";
       case "/user":
         return "Users";
+      case "/PaymentSummary":
+        return "Payment Summary";
       default:
         return "";
     }
@@ -138,7 +147,12 @@ function AppContent() {
     //   name: "Attendance",
     //   icon: <BiCalendarCheck size={24} />,
     // },
-    { path: "/payment", name: "Daily Payment", icon: <MdPayment size={24} /> },
+    { path: "/payment", name: "Payment Entry", icon: <MdPayment size={24} /> },
+    {
+      path: "/PaymentSummary",
+      name: "Payment Summary",
+      icon: <MdPayment size={24} />,
+    },
     {
       path: "/monthly",
       name: "Monthly Review",
@@ -270,6 +284,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <User />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/PaymentSummary"
+              element={
+                <ProtectedRoute>
+                  <PaymentSummary />
                 </ProtectedRoute>
               }
             />
