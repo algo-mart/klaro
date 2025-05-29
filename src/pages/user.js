@@ -246,7 +246,7 @@ const User = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
+    <Box sx={{ width: '100%', height: '70vh', p: 3 }}>
       {/* Header and Toggle Buttons - Always visible */}
       <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* <Typography variant="h4" gutterBottom>
@@ -302,22 +302,29 @@ const User = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: '#1a2233' }}>
-                  <TableCell sx={{ color: 'white' }}>ID</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Category</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Email</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Phone</TableCell>
-                  <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>S/N</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Name</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Email</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Phone Number</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Category</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 600 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {participants.map((participant) => (
-                  <TableRow key={participant.id}>
-                    <TableCell>{participant.id}</TableCell>
+                {participants.map((participant, index) => (
+                  <TableRow
+                    key={participant.id}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9',
+                      },
+                    }}
+                  >
+                    <TableCell>{index + 1}</TableCell>
                     <TableCell>{participant.name}</TableCell>
-                    <TableCell>{participant.category}</TableCell>
                     <TableCell>{participant.contactInfo?.email || participant.email || ''}</TableCell>
                     <TableCell>{participant.contactInfo?.phone || participant.phone || ''}</TableCell>
+                    <TableCell>{participant.category}</TableCell>
                     <TableCell>
                       <IconButton onClick={(e) => handleMenuOpen(e, participant)}>
                         <MoreVertIcon />

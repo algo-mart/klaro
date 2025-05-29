@@ -113,7 +113,7 @@ const Addparticipants = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ minHeight: "70vh", p: 3 }}>
       {/* <Typography variant="h4" gutterBottom>
         Add New User
       </Typography> */}

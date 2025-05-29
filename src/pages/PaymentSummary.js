@@ -104,7 +104,7 @@ const PaymentSummary = () => {
 
   return (
     <Box sx={{ padding: "20px" }}>
-      <Typography
+      {/* <Typography
         variant="h5"
         sx={{
           marginBottom: "24px",
@@ -113,10 +113,10 @@ const PaymentSummary = () => {
         }}
       >
         Payment Summary
-      </Typography>
+      </Typography> */}
 
       {loading ? (
-        <Box display="flex" justifyContent="center" p={3}>
+        <Box display="flex" justifyContent="center" minHeight="65vh" p={3}>
           <CircularProgress />
         </Box>
       ) : error ? (

@@ -154,7 +154,7 @@ const Payment = () => {
       sx={{
         padding: "20px",
         backgroundColor: "#f5f7fa",
-        minHeight: "calc(100vh - 64px)",
+        minHeight: "70vh",
       }}
     >
       <Paper
@@ -277,14 +277,14 @@ const Payment = () => {
                 variant="contained"
                 fullWidth
                 sx={{
-                  backgroundColor: "#3b82f6",
+                  backgroundColor: "#1a2233",
                   textTransform: "none",
                   borderRadius: "8px",
                   padding: "12px",
                   fontSize: "1rem",
                   fontWeight: 500,
                   "&:hover": {
-                    backgroundColor: "#2563eb",
+                    backgroundColor: "#3b82f6",
                   },
                 }}
               >

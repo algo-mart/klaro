@@ -440,7 +440,7 @@ const Events = () => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        minHeight="200px"
+        minHeight="70vh"
       >
         <CircularProgress />
       </Box>
@@ -456,7 +456,7 @@ const Events = () => {
   }
 
   return (
-    <Box m={3}>
+    <Box sx={{ width: '100%', minHeight: '70vh', p: 3 }}>
       <Box
         display="flex"
         justifyContent="space-between"
