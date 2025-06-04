@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from 'axios';
+import { useParams, useLocation } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -6,166 +8,719 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Box,
   CircularProgress,
   Alert,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Modal,
+  Typography,
+  Select,
 } from "@mui/material";
-import apiService from "../services/api";
+import { 
+  Edit as EditIcon, 
+  Delete as DeleteIcon,
+  MoreVert as MoreVertIcon 
+} from '@mui/icons-material';
+import { useAuth } from "../context/AuthContext";
 
 const Attendance = () => {
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { eventId, venue, eventType } = location.state || {}; // Access eventId, venue, and eventType
   const [participants, setParticipants] = useState([]);
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState(null);
-  const [attendanceStatus, setAttendanceStatus] = useState("PRESENT");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteParticipantId, setDeleteParticipantId] = useState("");
+  const [deleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    address: '',
+    category: 'Member',
+    contactInfoId: null
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState(null);
+  const [eventDetails, setEventDetails] = useState(null);
+  const [eventLoading, setEventLoading] = useState(true);
+  const [eventError, setEventError] = useState("");
 
-  useEffect(() => {
-    fetchParticipants();
-  }, []);
-
-  useEffect(() => {
-    if (selectedDate) {
-      fetchAttendanceByDate(selectedDate);
-    }
-  }, [selectedDate]);
-
-  const fetchParticipants = async () => {
+  const fetchAttendanceForDate = async (date) => {
     try {
       setLoading(true);
-      setError("");
-      const response = await apiService.participants.getAll();
-      setParticipants(Array.isArray(response) ? response : []);
-    } catch (err) {
-      console.error("Error fetching participants:", err);
-      setError(
-        "Failed to fetch participants: " + (err.message || "Unknown error"),
+      setError('');
+      
+      // First get the attendance records for the date
+      const attendanceResponse = await axios.get(
+        `/api/attendance?date=${date}&eventId=${eventId}`
       );
-      setParticipants([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      console.log('Raw Attendance Response:', attendanceResponse.data);
 
-  const fetchAttendanceByDate = async (date) => {
-    try {
-      setLoading(true);
-      setError("");
-      const records = await apiService.attendance.getByDate(date);
-      setAttendanceRecords(Array.isArray(records) ? records : []);
+      // Filter records for the specific date and create a map
+      const dateRecords = (attendanceResponse.data.content || [])
+        .filter(record => record.date === date);
+      
+      console.log('Filtered records for date:', date, dateRecords);
+
+      const attendanceMap = new Map(
+        dateRecords.map(record => [
+          record.participantId,
+          record.status === 'PRESENT' ? 'Present' : 'Absent'
+        ])
+      );
+
+      console.log('Attendance map:', Object.fromEntries(attendanceMap));
+
+      // Update existing participants with attendance status
+      setParticipants(prevParticipants => {
+        const updatedParticipants = prevParticipants.map(participant => ({
+          ...participant,
+          status: attendanceMap.get(participant.id) || 'Absent'
+        }));
+        console.log('Updated participants:', updatedParticipants);
+        return updatedParticipants;
+      });
+
     } catch (err) {
       console.error("Error fetching attendance:", err);
-      setError(
-        "Failed to fetch attendance records: " +
-          (err.message || "Unknown error"),
-      );
-      setAttendanceRecords([]);
+      setError("Failed to fetch attendance data: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDateChange = (event) => {
-    setSelectedDate(event.target.value);
+  useEffect(() => {
+    if (selectedParticipant) {
+      setEditData({
+        fullName: selectedParticipant.name,
+        phone: selectedParticipant.contactInfo?.phone || '',
+        email: selectedParticipant.contactInfo?.email || '',
+        address: selectedParticipant.contactInfo?.address || '',
+        category: selectedParticipant.category,
+        contactInfoId: selectedParticipant.contactInfo?.id
+      });
+    }
+  }, [selectedParticipant]);
+
+  useEffect(() => {
+  const fetchEventData = async () => {
+    if (!venue || !eventType) return; // Ensure venue and eventType exist
+
+    try {
+      setLoading(true);
+      setError('');
+
+      // Fetch event details
+      const response = await axios.get(
+        `https://kibou-registry-1.onrender.com/api/events/details?searchPhrase=${venue}&pageSize=10&pageNumber=0&eventType=${eventType}`
+      );
+
+      console.log("Fetched Event Data:", response.data);
+
+      if (response.data.content.length === 0) {
+        setError("No event data found.");
+        setParticipants([]);
+        return;
+      }
+
+      // Extract users from the first event in content
+      const eventData = response.data.content[0];
+      setEventDetails(eventData);
+
+      // Transform users to match participants structure
+      const formattedParticipants = eventData.users.map((user) => ({
+        id: user.userId,
+        name: user.name,
+        category: user.category,
+        email: user.contactInfo?.email || '',
+        phone: user.contactInfo?.phone || '',
+        address: user.contactInfo?.address || '',
+        status: "Absent", // Default status until attendance is recorded
+      }));
+
+      setParticipants(formattedParticipants);
+      setTotalElements(formattedParticipants.length);
+
+    } catch (error) {
+      console.error("Error fetching event data:", error);
+      setError("Failed to fetch event data.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOpenDialog = (participant) => {
-    setSelectedParticipant(participant);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setSelectedParticipant(null);
-    setOpenDialog(false);
-    setAttendanceStatus("PRESENT");
-  };
-
-  const handleStatusChange = (event) => {
-    setAttendanceStatus(event.target.value);
-  };
+  fetchEventData();
+}, [venue, eventType]);// Only depend on venue and eventType
 
   const handleSubmit = async () => {
-    if (!selectedParticipant || !selectedDate) return;
+    if (!selectedDate) {
+      setError("Please select a date first");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const participantStatus = participants.map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status
+      }));
+      console.log('Submitting attendance for:', selectedDate);
+      console.log('Current participants status:', participantStatus);
+
+      // Prepare attendance records for all participants
+      const attendancePromises = participants.map(participant => {
+        const data = {
+          participantId: participant.id,
+          date: selectedDate,
+          status: participant.status.toUpperCase(),
+          eventId: eventId
+        };
+        console.log(`Recording attendance for ${participant.name}:`, data);
+        
+        return axios({
+          method: 'post',
+          url: '/api/attendance',
+          headers: { 
+            'Content-Type': 'application/json'
+          },
+          data: data
+        });
+      });
+
+      // Submit all attendance records
+      const results = await Promise.all(attendancePromises);
+      console.log('Submission results:', results.map(r => r.data));
+      
+      setSuccess("Attendance recorded successfully for all participants");
+      
+      // Wait a brief moment before fetching to allow server to update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh attendance data to confirm the changes
+      await fetchAttendanceForDate(selectedDate);
+    } catch (error) {
+      console.error('Error recording attendance:', error);
+      setError(`Failed to record attendance: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleAttendance = (participant) => {
+    setParticipants(prevParticipants => {
+      const updatedParticipants = prevParticipants.map(p => {
+        if (p.id === participant.id) {
+          const newStatus = p.status === 'Present' ? 'Absent' : 'Present';
+          console.log(`Toggling ${p.name} (ID: ${p.id}) from ${p.status} to ${newStatus}`);
+          return {
+            ...p,
+            status: newStatus
+          };
+        }
+        return p;
+      });
+      console.log('Updated participants after toggle:', updatedParticipants);
+      return updatedParticipants;
+    });
+  };
+
+  const handleMenuOpen = (event, participant) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedParticipant(participant);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    setEditModalOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
+    if (selectedParticipant) {
+      setDeleteConfirmModalOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  const handleDeleteParticipantAttendance = async () => {
+    if (!selectedParticipant) return;
 
     try {
       setLoading(true);
       setError("");
-      setSuccess("");
 
-      const attendanceData = {
-        participantId: selectedParticipant.id || selectedParticipant._id,
-        date: selectedDate,
-        status: attendanceStatus,
-        name: selectedParticipant.name,
-        category: selectedParticipant.category,
-      };
-
-      await apiService.attendance.record(attendanceData);
-      setSuccess("Attendance recorded successfully!");
-
-      // Refresh attendance records
-      await fetchAttendanceByDate(selectedDate);
-
-      handleCloseDialog();
+      await axios.delete(`/api/attendance/${selectedParticipant.id}`);
+      
+      setSuccess("Attendance record deleted successfully");
+      setDeleteConfirmModalOpen(false);
+      
+      // Refresh the attendance data if there's a currently selected date
+      if (selectedDate) {
+        await fetchAttendanceForDate(selectedDate);
+      }
     } catch (err) {
-      setError(
-        "Failed to record attendance: " + (err.message || "Unknown error"),
-      );
+      console.error("Error deleting attendance record:", err);
+      setError("Failed to delete attendance record: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
-  const getAttendanceStatus = (participantId) => {
-    const record = attendanceRecords.find(
-      (record) => record.participantId === participantId,
-    );
-    return record ? record.status : "NOT_MARKED";
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "PRESENT":
-        return "success.main";
-      case "ABSENT":
-        return "error.main";
-      case "EXCUSED":
-        return "warning.main";
-      default:
-        return "text.secondary";
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleDeleteRecord = async () => {
+    if (!deleteParticipantId) {
+      setError("Please enter an attendance ID");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await axios.delete(`/api/attendance/${deleteParticipantId}`);
+      
+      setSuccess("Attendance record deleted successfully");
+      setDeleteModalOpen(false);
+      setDeleteParticipantId("");
+      
+      // Refresh the attendance data if there's a currently selected date
+      if (selectedDate) {
+        await fetchAttendanceForDate(selectedDate);
+      }
+    } catch (err) {
+      console.error("Error deleting attendance record:", err);
+      setError("Failed to delete attendance record: " + (err.message || "Unknown error"));
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleSave = async () => {
+    try {
+      setEditLoading(true);
+      setEditError(null);
+      
+      if (!selectedParticipant?.id) {
+        throw new Error('Participant ID is missing');
+      }
+
+      if (!isAuthenticated()) {
+        throw new Error('You are not authenticated. Please log in again.');
+      }
+
+      const payload = {
+        name: editData.fullName,
+        category: editData.category.toUpperCase(),
+        contact_info: {
+          id: selectedParticipant.id,  // Use the actual participant ID
+          email: editData.email,
+          phone: editData.phone,
+          address: editData.address
+        }
+      };
+
+      console.log('[DEBUG] Starting update with:', {
+        participantId: selectedParticipant.id,  // Log the actual participant ID
+        payload: JSON.stringify(payload, null, 2),
+        isAuthenticated: isAuthenticated()
+      });
+
+      const response = await axios.put(
+        `/api/participants/${selectedParticipant.id}`,  // Use the actual participant ID in the URL
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+          }
+        }
+      );
+
+      console.log('[DEBUG] Update successful:', response.data);
+      setEditModalOpen(false);
+    } catch (error) {
+      console.error('[DEBUG] Update failed:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers
+        }
+      });
+      
+      let errorMessage = 'Failed to update participant';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setEditError(errorMessage);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setEditModalOpen(false);
+    setSelectedParticipant(null);
+    setEditError(null);
+  };
+
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: 2,
+  };
+
+  if (loading) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert 
+        severity="error" 
+        sx={{ 
+          width: '100%', 
+          marginTop: 2 
+        }}
+      >
+        {error}
+        <Button 
+          onClick={() => {
+            setError("");
+            setSuccess("");
+          }} 
+          color="error" 
+          variant="contained" 
+          sx={{ marginLeft: 2 }}
+        >
+          Retry
+        </Button>
+      </Alert>
+    );
+  }
+
+  if (participants.length === 0) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}
+      >
+        <Typography variant="h6" color="textSecondary">
+          No participants found
+        </Typography>
+        <Button 
+          onClick={() => {
+            setError("");
+            setSuccess("");
+          }} 
+          color="primary" 
+          variant="contained" 
+          sx={{ marginTop: 2 }}
+        >
+          Refresh
+        </Button>
+      </Box>
+    );
+  }
+
+  if (eventLoading) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <Alert 
+        severity="error" 
+        sx={{ 
+          width: '100%', 
+          marginTop: 2 
+        }}
+      >
+        {eventError}
+      </Alert>
+    );
+  }
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
+    <Box sx={{ width: '100%', p: 3 }}>
+      <Box sx={{ mb: 4 }}>
+        <h2>Meeting Attendance</h2>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <TextField
           type="date"
-          label="Select Date"
           value={selectedDate}
-          onChange={handleDateChange}
-          InputLabelProps={{
-            shrink: true,
+          onChange={(e) => {
+            setSelectedDate(e.target.value);
+            fetchAttendanceForDate(e.target.value);
           }}
-          fullWidth
+          sx={{ width: 220 }}
         />
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading || !selectedDate}
+        >
+          Submit Attendance
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => setDeleteModalOpen(true)}
+        >
+          Delete a record
+        </Button>
       </Box>
+
+      {/* Delete Record Modal */}
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        aria-labelledby="delete-attendance-modal"
+      >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Delete Attendance Record
+          </Typography>
+          <TextField
+            type="text"
+            value={deleteParticipantId}
+            onChange={(e) => setDeleteParticipantId(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+            label="Attendance ID"
+            placeholder="Enter attendance ID"
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setDeleteParticipantId("");
+              }}
+              variant="outlined"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteRecord}
+              variant="contained"
+              color="error"
+              disabled={!deleteParticipantId || loading}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={deleteConfirmModalOpen}
+        onClose={() => setDeleteConfirmModalOpen(false)}
+        aria-labelledby="delete-confirmation-modal"
+      >
+        <Box sx={modalStyle}>
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Delete Attendance Record
+          </Typography>
+          <Typography sx={{ mb: 3 }}>
+            Are you sure you want to delete the attendance record for {selectedParticipant?.name}?
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button
+              onClick={() => setDeleteConfirmModalOpen(false)}
+              variant="outlined"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteParticipantAttendance}
+              variant="contained"
+              color="error"
+              disabled={loading}
+            >
+              Delete
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        open={editModalOpen}
+        onClose={handleModalClose}
+        aria-labelledby="edit-participant-modal"
+      >
+        <Box sx={{ ...modalStyle, width: 500 }}>
+          <Typography variant="h6" gutterBottom>
+            Edit Participant
+          </Typography>
+          
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Root level fields */}
+            <TextField
+              label="Full Name"
+              value={editData.fullName}
+              onChange={(e) => setEditData({...editData, fullName: e.target.value})}
+              fullWidth
+              required
+            />
+            
+            <Select
+              value={editData.category}
+              onChange={(e) => setEditData({...editData, category: e.target.value})}
+              fullWidth
+              required
+            >
+              <MenuItem value="MEMBER">Member</MenuItem>
+              <MenuItem value="INTERN">Intern</MenuItem>
+              <MenuItem value="SENIOR_STAFF">Senior Staff</MenuItem>
+            </Select>
+
+            {/* Contact Info Section */}
+            <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+              Contact Information
+            </Typography>
+            
+            <Box sx={{ 
+              bgcolor: 'background.paper',
+              p: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              <TextField
+                label="Email"
+                type="email"
+                value={editData.email}
+                onChange={(e) => setEditData({...editData, email: e.target.value})}
+                fullWidth
+                required
+              />
+              
+              <TextField
+                label="Phone"
+                value={editData.phone}
+                onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                fullWidth
+                required
+              />
+              
+              <TextField
+                label="Address"
+                multiline
+                rows={3}
+                value={editData.address}
+                onChange={(e) => setEditData({...editData, address: e.target.value})}
+                fullWidth
+              />
+            </Box>
+
+            {editError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {editError}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+              <Button 
+                variant="outlined" 
+                onClick={handleModalClose}
+                disabled={editLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={handleSave}
+                disabled={editLoading}
+              >
+                {editLoading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -179,97 +734,125 @@ const Attendance = () => {
         </Alert>
       )}
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Phone Number</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Action</TableCell>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Category</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>Attendance</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {participants.map((participant) => (
+              <TableRow key={participant.id}>
+                <TableCell>{participant.id}</TableCell>
+                <TableCell>{participant.name}</TableCell>
+                <TableCell>{participant.category}</TableCell>
+                <TableCell>{participant.email}</TableCell>
+                <TableCell>{participant.phone}</TableCell>
+                <TableCell>
+                  <Button 
+                    variant={participant.status === 'Present' ? 'contained' : 'outlined'}
+                    color={participant.status === 'Present' ? 'success' : 'error'}
+                    onClick={() => toggleAttendance(participant)}
+                  >
+                    {participant.status}
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <IconButton onClick={(e) => handleMenuOpen(e, participant)}>
+                    <MoreVertIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {Array.isArray(participants) && participants.length > 0 ? (
-                participants.map((participant) => {
-                  const status = getAttendanceStatus(
-                    participant.id || participant._id,
-                  );
-                  return (
-                    <TableRow key={participant.id || participant._id}>
-                      <TableCell>{participant.name}</TableCell>
-                      <TableCell>{participant.phoneNumber}</TableCell>
-                      <TableCell>{participant.email}</TableCell>
-                      <TableCell>{participant.category}</TableCell>
-                      <TableCell>
-                        <Box sx={{ color: getStatusColor(status) }}>
-                          {status.replace("_", " ")}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleOpenDialog(participant)}
-                          disabled={status !== "NOT_MARKED"}
-                        >
-                          Mark Attendance
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    {loading ? "Loading..." : "No participants found"}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={totalElements}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+      />
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          Mark Attendance for {selectedParticipant?.name}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ minWidth: 300, mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={attendanceStatus}
-                label="Status"
-                onChange={handleStatusChange}
-              >
-                <MenuItem value="PRESENT">Present</MenuItem>
-                <MenuItem value="ABSENT">Absent</MenuItem>
-                <MenuItem value="EXCUSED">Excused</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-            disabled={loading}
-          >
-            {loading ? "Submitting..." : "Submit"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Event Details
+        </Typography>
+        {eventDetails && (
+          <table>
+            <thead>
+              <tr>
+                <th>Detail</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Assuming eventDetails is an object with key-value pairs */}
+              {Object.entries(eventDetails).map(([key, value]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Box>
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Participants
+        </Typography>
+        {eventDetails && (
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Contact Info</th>
+              </tr>
+            </thead>
+            <tbody>
+              {eventDetails.users.map(user => (
+                <tr key={user.userId}>
+                  <td>{user.name}</td>
+                  <td>
+                    <div>Email: {user.contactInfo.email}</div>
+                    <div>Phone: {user.contactInfo.phone}</div>
+                    <div>Address: {user.contactInfo.address}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Box>
     </Box>
   );
 };

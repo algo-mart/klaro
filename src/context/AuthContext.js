@@ -23,6 +23,13 @@ export const AuthProvider = ({ children }) => {
     if (authData) {
       try {
         const parsedData = JSON.parse(authData);
+        console.log('[DEBUG] Loaded auth data:', { 
+          hasUser: !!parsedData?.user,
+          expiresAt: parsedData?.expiresAt,
+          now: Date.now(),
+          isValid: parsedData?.expiresAt > Date.now()
+        });
+        
         if (parsedData && parsedData.expiresAt > Date.now()) {
           setUser(parsedData.user);
           // Refresh the session if it's valid but close to expiring (less than 1 day)
@@ -30,13 +37,15 @@ export const AuthProvider = ({ children }) => {
             refreshSession(parsedData.user);
           }
         } else {
-          console.log("Session expired");
+          console.log("[DEBUG] Session expired or invalid");
           localStorage.removeItem(STORAGE_KEY);
         }
       } catch (error) {
-        console.error("Invalid auth data:", error);
+        console.error("[DEBUG] Invalid auth data:", error);
         localStorage.removeItem(STORAGE_KEY);
       }
+    } else {
+      console.log("[DEBUG] No auth data found in storage");
     }
     setLoading(false);
   }, []);
@@ -50,6 +59,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = (userData) => {
+    console.log('[DEBUG] Logging in with user data:', {
+      id: userData.id,
+      email: userData.email,
+      hasToken: !!userData.token
+    });
+    
     // Remove sensitive data before storing
     const sanitizedUser = {
       id: userData.id,
@@ -57,6 +72,7 @@ export const AuthProvider = ({ children }) => {
       role: userData.role,
       fullName: userData.fullName,
       lastLogin: new Date().toISOString(),
+      token: userData.token
     };
 
     // Create session
@@ -70,8 +86,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(null);
+    console.log('[DEBUG] Logging out');
     localStorage.removeItem(STORAGE_KEY);
+    setUser(null);
   };
 
   const isAuthenticated = () => {
@@ -82,6 +99,11 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const { expiresAt } = JSON.parse(authData);
+      console.log('[DEBUG] Checking auth:', { 
+        hasUser: !!user, 
+        hasToken: !!user?.token,
+        isAuthenticated: expiresAt > Date.now() 
+      });
       return expiresAt > Date.now();
     } catch {
       return false;

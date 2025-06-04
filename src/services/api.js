@@ -1,13 +1,15 @@
-const BASE_URL = "/api";
+const BASE_URL = "https://kibou-registry-1.onrender.com/api";
+
+// Helper function to ensure trailing slash in URLs
+const ensureTrailingSlash = (url) => (url.endsWith("/") ? url : `${url}/`);
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   try {
     const contentType = response.headers.get("content-type");
-    const data =
-      contentType && contentType.includes("application/json")
-        ? await response.json()
-        : await response.text();
+    let data = contentType?.includes("application/json")
+      ? await response.json()
+      : await response.text();
 
     if (!response.ok) {
       const errorMessage =
@@ -17,253 +19,89 @@ const handleResponse = async (response) => {
       throw new Error(errorMessage);
     }
 
-    return data;
+    return data || {}; // Handle empty responses (e.g., DELETE)
   } catch (e) {
     console.error("Error handling response:", e);
     throw e;
   }
 };
 
-// Common fetch options
-const commonFetchOptions = {
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-};
+// Function to get headers with auth token
+const getAuthHeaders = (token) => ({
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+});
 
-// API Service object
+// API Service
 const apiService = {
-  // Participant Management
-  participants: {
-    // Create a new participant
-    create: async (participantData) => {
-      console.log(participantData);
+  events: {
+    getAll: async (token, params = {}) => {
       try {
-        const response = await fetch(`${BASE_URL}/participants`, {
+        const queryParams = new URLSearchParams(params).toString();
+        const url = ensureTrailingSlash(`${BASE_URL}/events`) + (queryParams ? `?${queryParams}` : "");
+
+        const response = await fetch(url, {
+          headers: getAuthHeaders(token),
+          method: "GET",
+        });
+        return handleResponse(response);
+      } catch (error) {
+        console.error("Error in getAll events:", error);
+        throw error;
+      }
+    },
+
+    getById: async (id, token) => {
+      try {
+        const response = await fetch(ensureTrailingSlash(`${BASE_URL}/events/${id}`), {
+          headers: getAuthHeaders(token),
+          method: "GET",
+        });
+        return handleResponse(response);
+      } catch (error) {
+        console.error("Error in getById event:", error);
+        throw error;
+      }
+    },
+
+    create: async (eventData, token) => {
+      try {
+        const response = await fetch(ensureTrailingSlash(`${BASE_URL}/events`), {
+          headers: getAuthHeaders(token),
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: participantData,
-        });
-
-        const data = await response.json();
-
-        console.log(data.name, JSON.parse(participantData).name);
-        console.log(data.name != JSON.parse(participantData).name);
-        // if (data.name == JSON.parse(participantData).name) {
-        //   throw new Error(data.message || "Failed to add participant");
-        // }
-
-        return {
-          status: "Success",
-          data: data,
-        };
-      } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    },
-
-    // Get all participants
-    getAll: async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/participants`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch participants");
-        }
-
-        return data.data || [];
-      } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    },
-
-    // Get a participant by ID
-    getById: async (id) => {
-      try {
-        const response = await fetch(`${BASE_URL}/participants/${id}`, {
-          ...commonFetchOptions,
-          method: "GET",
+          body: JSON.stringify(eventData),
         });
         return handleResponse(response);
       } catch (error) {
-        console.error("API Error:", error);
+        console.error("Error in create event:", error);
         throw error;
       }
     },
 
-    // Update a participant
-    update: async (id, participantData) => {
+    update: async (id, eventData, token) => {
       try {
-        // Validate required fields
-        if (
-          !participantData.name ||
-          !participantData.phoneNumber ||
-          !participantData.email
-        ) {
-          throw new Error("Name, phone number, and email are required");
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(participantData.email)) {
-          throw new Error("Invalid email format");
-        }
-
-        const sanitizedData = {
-          name: participantData.name.trim(),
-          phoneNumber: participantData.phoneNumber.trim(),
-          email: participantData.email.trim().toLowerCase(),
-          address: participantData.address?.trim() || "",
-          category: participantData.category || "MEMBER",
-        };
-
-        const response = await fetch(`${BASE_URL}/participants/${id}`, {
-          ...commonFetchOptions,
+        const response = await fetch(ensureTrailingSlash(`${BASE_URL}/events/${id}`), {
+          headers: getAuthHeaders(token),
           method: "PUT",
-          body: JSON.stringify(sanitizedData),
+          body: JSON.stringify(eventData),
         });
         return handleResponse(response);
       } catch (error) {
-        console.error("API Error:", error);
+        console.error("Error in update event:", error);
         throw error;
       }
     },
 
-    // Delete a participant
-    delete: async (id) => {
+    delete: async (id, token) => {
       try {
-        const response = await fetch(`${BASE_URL}/participants/${id}`, {
-          ...commonFetchOptions,
+        const response = await fetch(ensureTrailingSlash(`${BASE_URL}/events/${id}`), {
+          headers: getAuthHeaders(token),
           method: "DELETE",
         });
         return handleResponse(response);
       } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    },
-  },
-
-  // Attendance Management
-  attendance: {
-    // Record attendance
-    record: async (attendanceData) => {
-      try {
-        // For now, store attendance in localStorage until backend is ready
-        const key = `attendance_${attendanceData.date}_${attendanceData.participantId}`;
-        localStorage.setItem(key, JSON.stringify(attendanceData));
-        return attendanceData;
-      } catch (error) {
-        console.error("API Error:", error);
-        throw new Error("Failed to record attendance");
-      }
-    },
-
-    // Get all attendance records
-    getAll: async (date) => {
-      try {
-        // For now, get from localStorage until backend is ready
-        const records = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith("attendance_")) {
-            const record = JSON.parse(localStorage.getItem(key));
-            if (!date || record.date === date) {
-              records.push(record);
-            }
-          }
-        }
-        return records;
-      } catch (error) {
-        console.error("API Error:", error);
-        return [];
-      }
-    },
-
-    // Get attendance by participant ID
-    getByParticipant: async (participantId) => {
-      try {
-        // For now, get from localStorage until backend is ready
-        const records = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith("attendance_")) {
-            const record = JSON.parse(localStorage.getItem(key));
-            if (record.participantId === participantId) {
-              records.push(record);
-            }
-          }
-        }
-        return records;
-      } catch (error) {
-        console.error("API Error:", error);
-        return [];
-      }
-    },
-
-    // Get attendance by date
-    getByDate: async (date) => {
-      try {
-        // For now, get from localStorage until backend is ready
-        const records = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith("attendance_")) {
-            const record = JSON.parse(localStorage.getItem(key));
-            if (record.date === date) {
-              records.push(record);
-            }
-          }
-        }
-        return records;
-      } catch (error) {
-        console.error("API Error:", error);
-        return [];
-      }
-    },
-  },
-
-  // Payment Management
-  payments: {
-    // Record payment
-    record: async (paymentData) => {
-      try {
-        const response = await fetch(`${BASE_URL}/payments`, {
-          ...commonFetchOptions,
-          method: "POST",
-          body: JSON.stringify(paymentData),
-        });
-        return handleResponse(response);
-      } catch (error) {
-        console.error("API Error:", error);
-        throw error;
-      }
-    },
-
-    // Get payment records
-    getAll: async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/payments`, {
-          ...commonFetchOptions,
-          method: "GET",
-        });
-        return handleResponse(response);
-      } catch (error) {
-        console.error("API Error:", error);
+        console.error("Error in delete event:", error);
         throw error;
       }
     },
