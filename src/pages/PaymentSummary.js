@@ -103,7 +103,7 @@ const PaymentSummary = () => {
   };
 
   return (
-    <Box sx={{ padding: "20px" }}>
+    <Box sx={{ padding: "20px", minHeight: "65vh" }}>
       {/* <Typography
         variant="h5"
         sx={{

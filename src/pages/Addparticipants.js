@@ -138,6 +138,7 @@ const Addparticipants = () => {
         color: 'white',
         '& .MuiInputLabel-root': {
           color: 'white'
+          
         },
         '& .MuiOutlinedInput-root': {
           '& fieldset': {

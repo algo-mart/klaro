@@ -20,7 +20,8 @@ const Payment = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -74,8 +75,14 @@ const Payment = () => {
         allUsers.sort((a, b) => a.firstName.localeCompare(b.firstName));
 
         // Ensure we have arrays and handle the response structure
-        setEvents(Array.isArray(eventsData) ? eventsData : eventsData.data || []);
-        setUsers(allUsers);
+        const eventsArray = Array.isArray(eventsData) ? eventsData : eventsData.data || [];
+        
+        // Sort events in descending order by date
+        const sortedEvents = [...eventsArray].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        setEvents(sortedEvents);
+        setAllUsers(allUsers);
+        setFilteredUsers(allUsers);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -89,12 +96,115 @@ const Payment = () => {
     }
   }, [user?.token]);
 
+  // Simple function to handle form changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Update form data
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    
+    // If event is selected, fetch participants and filter users
+    if (name === 'event' && value) {
+      fetchEventParticipants(value);
+    }
+  };
+  
+  // Function to fetch participants for an event
+  const fetchEventParticipants = async (eventId) => {
+    try {
+      setLoading(true);
+      eventId = Number(eventId);
+      
+      // Fetch the event details directly
+      const response = await fetch(
+        `https://kibou-registry-1.onrender.com/api/events/${eventId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch event details: ${response.status}`);
+      }
+      
+      const eventData = await response.json();
+      
+      // Check for participants in different possible locations in the response
+      let participants = [];
+      
+      if (eventData.participants && Array.isArray(eventData.participants)) {
+        participants = eventData.participants;
+      } else if (eventData.users && Array.isArray(eventData.users)) {
+        participants = eventData.users;
+      } else if (eventData.attendees && Array.isArray(eventData.attendees)) {
+        participants = eventData.attendees;
+      } else {
+        // Try to find any array in the response that might contain users
+        for (const key in eventData) {
+          if (Array.isArray(eventData[key]) && eventData[key].length > 0) {
+            const firstItem = eventData[key][0];
+            if (firstItem && (firstItem.userId || firstItem.user || firstItem.id)) {
+              participants = eventData[key];
+              break;
+            }
+          }
+        }
+      }
+      
+      if (participants.length > 0) {
+        // Extract user IDs from participants
+        const participantIds = [];
+        
+        for (const p of participants) {
+          let userId = null;
+          if (p.userId !== undefined) {
+            userId = Number(p.userId);
+          } else if (p.user && p.user.userId !== undefined) {
+            userId = Number(p.user.userId);
+          } else if (p.id !== undefined) {
+            userId = Number(p.id);
+          } else if (typeof p === 'number') {
+            userId = p;
+          }
+          
+          if (userId !== null) {
+            participantIds.push(userId);
+          }
+        }
+        
+        if (participantIds.length > 0) {
+          // Filter users who participated in the selected event
+          const eventUsers = allUsers.filter(user => {
+            const userId = Number(user.id);
+            return participantIds.includes(userId);
+          });
+          
+          if (eventUsers.length > 0) {
+            setFilteredUsers(eventUsers);
+          } else {
+            setFilteredUsers(allUsers);
+          }
+        } else {
+          setFilteredUsers(allUsers);
+        }
+      } else {
+        setFilteredUsers(allUsers);
+      }
+      
+      // Reset user selection
+      setFormData(prev => ({ ...prev, userId: '' }));
+    } catch (error) {
+      console.error('Error fetching event details:', error);
+      setFilteredUsers(allUsers);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -262,7 +372,7 @@ const Payment = () => {
                     borderRadius: "8px",
                   }}
                 >
-                  {Array.isArray(users) && users.map((user) => (
+                  {Array.isArray(filteredUsers) && filteredUsers.map((user) => (
                     <MenuItem key={user.id} value={user.id}>
                       {user.firstName} ({user.category.replace('_', ' ').toLowerCase()})
                     </MenuItem>
